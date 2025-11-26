@@ -8,12 +8,12 @@ export class KakaoAuthService {
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
-    this.clientId = process.env.KAKAO_CLIENT_ID || '';
+    this.clientId = process.env.KAKAO_REST_API_KEY || '';
     this.redirectUri = process.env.KAKAO_REDIRECT_URI || '';
 
     if (!this.clientId || !this.redirectUri) {
       console.warn(
-        '카카오 설정이 누락되었습니다. KAKAO_CLIENT_ID와 KAKAO_REDIRECT_URI를 .env에 설정하세요.'
+        '카카오 설정이 누락되었습니다. KAKAO_REST_API_KEY KAKAO_REDIRECT_URI를 .env에 설정하세요.'
       );
     }
   }
