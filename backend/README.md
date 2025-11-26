@@ -111,7 +111,26 @@ http://localhost:3000/auth/kakao
 
 ### 3. 로그인 완료
 
-로그인 성공 시 설정한 프론트엔드 URL로 리다이렉트됩니다.
+로그인 성공 시 설정한 프론트엔드 URL로 리다이렉트되며, 리다이렉트 URL의 쿼리 파라미터 `code`로 카카오가 반환한 일회용 인가 코드가 함께 전달됩니다. 카카오가 호출한 콜백 요청 전체 URL(예: `http://localhost:3000/auth/kakao/callback?code=...`)도 함께 확인할 수 있습니다.
+헤더 `Accept: application/json`을 포함해 콜백 엔드포인트를 호출하면 아래와 같이 JSON 응답으로도 인가 코드, 콜백 URL, 사용자 세션 정보를 확인할 수 있습니다.
+
+```json
+{
+  "success": true,
+  "message": "카카오 로그인에 성공했습니다.",
+  "authorizationCode": "인가코드값",
+  "callbackRequestUrl": "http://localhost:3000/auth/kakao/callback?code=인가코드값",
+  "user": {
+    "id": 1,
+    "kakaoId": "1234567890",
+    "nickname": "홍길동",
+    "email": "user@example.com",
+    "profileImage": "http://..."
+  },
+  "redirectUrl": "http://localhost:3000/?code=인가코드값"
+}
+```
+
 DB에 사용자 정보가 저장되고, 세션에 사용자 정보가 저장됩니다.
 
 ### 4. 사용자 정보 확인
