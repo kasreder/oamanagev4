@@ -34,6 +34,7 @@ MySQL을 설치하고 접근 가능한 계정을 준비하세요. 애플리케�
 ```env
 # 카카오 로그인 설정
 KAKAO_CLIENT_ID=여기에_REST_API_키_입력
+KAKAO_CLIENT_SECRET=클라이언트_시크릿_사용_시_입력(선택)
 KAKAO_REDIRECT_URI=http://localhost:3000/auth/kakao/callback
 
 # 서버 설정
@@ -61,6 +62,7 @@ DB_NAME=oamanage
 4. **제품 설정 > 카카오 로그인**
    - 카카오 로그인 활성화
    - Redirect URI: `http://localhost:3000/auth/kakao/callback` 등록
+   - (선택) 클라이언트 시크릿 사용 설정 시 발급된 코드 → `.env`의 `KAKAO_CLIENT_SECRET`에 입력
 5. **앱 키**에서 REST API 키 복사 → `.env`의 `KAKAO_CLIENT_ID`에 입력
 
 ### 5. 개발 서버 실행

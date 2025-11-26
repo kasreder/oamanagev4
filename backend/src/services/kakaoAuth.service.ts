@@ -3,17 +3,25 @@ import { KakaoTokenResponse, KakaoUserInfo } from '../types/kakao';
 
 export class KakaoAuthService {
   private readonly clientId: string;
+  private readonly clientSecret: string;
   private readonly redirectUri: string;
   private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
     this.clientId = process.env.KAKAO_CLIENT_ID || '';
+    this.clientSecret = process.env.KAKAO_CLIENT_SECRET || '';
     this.redirectUri = process.env.KAKAO_REDIRECT_URI || '';
 
     if (!this.clientId || !this.redirectUri) {
       console.warn(
         '카카오 설정이 누락되었습니다. KAKAO_CLIENT_ID KAKAO_REDIRECT_URI를 .env에 설정하세요.'
+      );
+    }
+
+    if (!this.clientSecret) {
+      console.info(
+        '카카오 클라이언트 시크릿이 비어 있습니다. 카카오 개발자 콘솔에서 보안을 사용 설정했다면 KAKAO_CLIENT_SECRET 환경 변수를 추가하세요.'
       );
     }
   }
@@ -51,6 +59,10 @@ export class KakaoAuthService {
         redirect_uri: this.redirectUri,
         code,
       });
+
+      if (this.clientSecret) {
+        params.append('client_secret', this.clientSecret);
+      }
 
       const response = await axios.post<KakaoTokenResponse>(
         this.tokenUrl,
