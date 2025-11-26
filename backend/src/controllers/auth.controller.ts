@@ -43,8 +43,14 @@ export class AuthController {
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_code`);
       }
 
+      const authorizationCode = String(code);
+
+      const apiBaseUrl =
+        process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const callbackRequestUrl = `${apiBaseUrl}${req.originalUrl}`;
+
       // 1. 인가 코드로 액세스 토큰 받기
-      const tokenData = await this.kakaoAuthService.getAccessToken(code);
+      const tokenData = await this.kakaoAuthService.getAccessToken(authorizationCode);
 
       // 2. 액세스 토큰으로 사용자 정보 받기
       const userInfo = await this.kakaoAuthService.getUserInfo(
@@ -72,12 +78,32 @@ export class AuthController {
       };
 
       // 세션 저장 후 메인 페이지로 리다이렉트
+      const redirectUrl = `${process.env.FRONTEND_URL}/?code=${encodeURIComponent(
+        authorizationCode
+      )}`;
+
+      const wantsJsonResponse =
+        typeof req.headers.accept === 'string' &&
+        req.headers.accept.includes('application/json');
+
       req.session.save((err) => {
         if (err) {
           console.error('Session save error:', err);
           return res.redirect(`${process.env.FRONTEND_URL}/login?error=session`);
         }
-        res.redirect(`${process.env.FRONTEND_URL}/`);
+
+        if (wantsJsonResponse) {
+          return res.json({
+            success: true,
+            message: '카카오 로그인에 성공했습니다.',
+            authorizationCode,
+            callbackRequestUrl,
+            user: req.session.user,
+            redirectUrl,
+          });
+        }
+
+        res.redirect(redirectUrl);
       });
     } catch (error) {
       console.error('Kakao callback error:', error);

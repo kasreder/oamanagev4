@@ -35,6 +35,24 @@ app.use(
 // 라우트 설정
 app.use('/auth', authRoutes);
 
+// 기본 라우트: 사용 가능한 엔드포인트 안내
+app.get('/', (req: Request, res: Response) => {
+  const port = process.env.PORT || 3000;
+  const baseUrl = process.env.API_BASE_URL || `http://localhost:${port}`;
+
+  res.json({
+    success: true,
+    message: '카카오 로그인 백엔드가 실행 중입니다.',
+    endpoints: {
+      health: `${baseUrl}/health`,
+      kakaoLogin: `${baseUrl}/auth/kakao`,
+      kakaoCallback: `${baseUrl}/auth/kakao/callback`,
+      currentUser: `${baseUrl}/auth/me`,
+      logout: `${baseUrl}/auth/logout`,
+    },
+  });
+});
+
 // 헬스 체크
 app.get('/health', (req: Request, res: Response) => {
   res.json({ 
