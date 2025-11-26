@@ -1,0 +1,39 @@
+import app from './app';
+import db from './config/database';
+
+const PORT = process.env.PORT || 3000;
+
+// DB 연결 테스트 후 서버 시작
+const startServer = async () => {
+  try {
+    // DB 연결 테스트
+    await db.testConnection();
+
+    app.listen(PORT, () => {
+      console.log(`
+╔════════════════════════════════════════════════════╗
+║                                                    ║
+║   🚀 Server is running on port ${PORT}             ║
+║                                                    ║
+║   📝 API Endpoints:                                ║
+║   - GET  /health                                   ║
+║   - GET  /auth/kakao                               ║
+║   - GET  /auth/kakao/callback                      ║
+║   - GET  /auth/me                                  ║
+║   - POST /auth/logout                              ║
+║                                                    ║
+║   🔐 Kakao Login:                                  ║
+║   http://localhost:${PORT}/auth/kakao               ║
+║                                                    ║
+║   💾 Database: Connected                           ║
+║                                                    ║
+╚════════════════════════════════════════════════════╝
+      `);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
