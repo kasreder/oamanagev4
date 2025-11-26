@@ -1,11 +1,8 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import session from 'express-session';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
-
-// 환경 변수 로드
-dotenv.config();
+import './config/env';
 
 const app: Express = express();
 
