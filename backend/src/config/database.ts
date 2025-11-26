@@ -3,18 +3,32 @@ import mysql from 'mysql2/promise';
 class Database {
   private static instance: Database;
   private pool: mysql.Pool;
+  private initializationPromise: Promise<void>;
+  private readonly dbConfig: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+  };
 
   private constructor() {
-    this.pool = mysql.createPool({
+    this.dbConfig = {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '3306'),
       user: process.env.DB_USER || 'root',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_NAME || 'oamanage',
+    };
+
+    this.pool = mysql.createPool({
+      ...this.dbConfig,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
     });
+
+    this.initializationPromise = this.initializeDatabase();
 
     console.log('✅ Database connection pool created');
   }
@@ -32,6 +46,7 @@ class Database {
 
   public async query(sql: string, values?: any[]): Promise<any> {
     try {
+      await this.ensureInitialized();
       const [rows] = await this.pool.execute(sql, values);
       return rows;
     } catch (error) {
@@ -40,8 +55,52 @@ class Database {
     }
   }
 
+  private async initializeDatabase(): Promise<void> {
+    const { host, port, user, password, database } = this.dbConfig;
+
+    try {
+      const connection = await mysql.createConnection({
+        host,
+        port,
+        user,
+        password,
+        multipleStatements: true,
+      });
+
+      await connection.query(
+        `CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+      );
+      await connection.query(`USE \`${database}\`;`);
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          kakao_id VARCHAR(100) NOT NULL UNIQUE,
+          nickname VARCHAR(100) NOT NULL,
+          email VARCHAR(255) DEFAULT NULL,
+          profile_image VARCHAR(500) DEFAULT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX idx_kakao_id (kakao_id),
+          INDEX idx_email (email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+
+      await connection.end();
+
+      console.log('✅ Database and tables ensured');
+    } catch (error) {
+      console.error('❌ Failed to initialize database:', error);
+      throw error;
+    }
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    return this.initializationPromise;
+  }
+
   public async testConnection(): Promise<boolean> {
     try {
+      await this.ensureInitialized();
       const connection = await this.pool.getConnection();
       console.log('✅ Database connection test successful');
       connection.release();
