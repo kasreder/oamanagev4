@@ -8,8 +8,8 @@ export class KakaoAuthService {
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
-    this.clientId = process.env.KAKAO_CLIENT_SECRET || '';
-    this.redirectUri = process.env.KAKAO_REST_API_KEY || '';
+    this.clientId = process.env.KAKAO_CLIENT_ID || '';
+    this.redirectUri = process.env.KAKAO_REDIRECT_URI || '';
 
     if (!this.clientId || !this.redirectUri) {
       throw new Error('Kakao configuration is missing');
