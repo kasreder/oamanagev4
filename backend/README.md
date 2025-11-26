@@ -21,18 +21,7 @@ npm install
 
 ### 2. 데이터베이스 설정
 
-MySQL을 설치하고 데이터베이스를 생성하세요:
-
-**방법 1: 스크립트 사용**
-```bash
-cd database
-./init.sh
-```
-
-**방법 2: 직접 실행**
-```bash
-mysql -u root -p < database/schema.sql
-```
+MySQL을 설치하고 접근 가능한 계정을 준비하세요. 애플리케이션이 시작될 때 `DB_NAME`에 지정한 데이터베이스와 `users` 테이블을 자동으로 생성합니다. (초기 설정이 잘못되면 서버가 시작되지 않으니, 환경 변수를 정확히 입력하세요.)
 
 ### 3. 환경 변수 설정
 
@@ -73,7 +62,12 @@ DB_NAME=oamanage
 ### 5. 개발 서버 실행
 
 ```bash
+# 개발용 핫 리로드 서버
 npm run dev
+
+# 또는 빌드 후 프로덕션 모드 실행
+npm run build
+npm run start
 ```
 
 서버가 `http://localhost:3000`에서 실행됩니다.
