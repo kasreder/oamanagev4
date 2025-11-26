@@ -12,7 +12,9 @@ export class KakaoAuthService {
     this.redirectUri = process.env.KAKAO_REDIRECT_URI || '';
 
     if (!this.clientId || !this.redirectUri) {
-      throw new Error('Kakao configuration is missing');
+      console.warn(
+        '카카오 설정이 누락되었습니다. KAKAO_CLIENT_ID와 KAKAO_REDIRECT_URI를 .env에 설정하세요.'
+      );
     }
   }
 
@@ -20,6 +22,10 @@ export class KakaoAuthService {
    * 카카오 로그인 페이지 URL 생성
    */
   getAuthUrl(): string {
+    if (!this.clientId || !this.redirectUri) {
+      throw new Error('카카오 설정이 없습니다. 환경 변수를 확인하세요.');
+    }
+
     const baseUrl = 'https://kauth.kakao.com/oauth/authorize';
     const params = new URLSearchParams({
       client_id: this.clientId,
@@ -34,6 +40,10 @@ export class KakaoAuthService {
    * 인가 코드로 액세스 토큰 요청
    */
   async getAccessToken(code: string): Promise<KakaoTokenResponse> {
+    if (!this.clientId || !this.redirectUri) {
+      throw new Error('카카오 설정이 없습니다. 환경 변수를 확인하세요.');
+    }
+
     try {
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
