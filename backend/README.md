@@ -84,6 +84,7 @@ npm run start
 
 | Method | Endpoint | 설명 | 인증 필요 |
 |--------|----------|------|-----------|
+| GET | `/` | 서버 상태 및 인증 엔드포인트 안내 | ❌ |
 | GET | `/auth/kakao` | 카카오 로그인 시작 | ❌ |
 | GET | `/auth/kakao/callback` | 카카오 로그인 콜백 | ❌ |
 | GET | `/auth/me` | 현재 사용자 정보 조회 | ✅ |
