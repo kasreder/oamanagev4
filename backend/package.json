@@ -2,11 +2,11 @@
   "name": "oamanagev4",
   "version": "1.0.0",
   "description": "카카오 로그인 백엔드 API",
-  "main": "dist/server.js",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/server.ts",
+    "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["kakao", "login", "typescript", "express"],
