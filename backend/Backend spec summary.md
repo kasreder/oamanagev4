@@ -1325,12 +1325,68 @@ test: API 테스트 케이스 작성
 ## 파일 구조
 
 ```
-
+backend/
+├── src/
+│   ├── index.ts                # 서버 진입점 (app을 불러와 포트 리스닝)
+│   ├── app.ts                  # Express 앱, CORS/세션/라우트 설정
+│   ├── config/
+│   │   ├── env.ts              # .env 강제 로드 (프로젝트 루트 고정)
+│   │   ├── auth.ts             # 세션 및 JWT 설정
+│   │   ├── database.ts         # MySQL 풀 생성, DB/테이블 자동 생성
+│   │   └── social.ts           # 카카오 OAuth 설정
+│   ├── controllers/
+│   │   └── auth.controller.ts  # 카카오 로그인/콜백/세션 조회/로그아웃
+│   ├── middlewares/
+│   │   └── auth.middleware.ts  # 인증 미들웨어 (계획/스켈레톤)
+│   ├── models/
+│   │   └── User.ts             # 사용자 모델 타입 정의
+│   ├── routes/
+│   │   ├── index.ts            # 기본 라우트 묶음
+│   │   └── auth.routes.ts      # /auth 하위 라우트 선언
+│   ├── services/
+│   │   └── kakaoAuth.service.ts # 카카오 토큰 교환/사용자 저장 로직
+│   ├── repositories/README.md  # 저장소 계층 가이드(계획)
+│   ├── validators/README.md    # 요청 검증 가이드(계획)
+│   ├── utils/README.md         # 유틸 가이드(계획)
+│   └── types/
+│       ├── kakao.ts            # 카카오 API 응답 타입 정의
+│       └── session.d.ts        # express-session 커스텀 타입
+├── database/schema.sql         # users 테이블 스키마
+├── nodemon.json                # 개발용 ts-node 실행 설정
+├── package.json                # 의존성 및 스크립트
+├── tsconfig.json               # TypeScript 설정
+├── README.md                   # 프로젝트 설명
+└── Backend spec summary.md     # 백엔드 명세 (본 문서)
+```
 
 ---
 
 ## 환경 변수 (.env)
 
+```env
+# 애플리케이션 기본 설정
+NODE_ENV=development
+PORT=3000
+API_BASE_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
+
+# 세션/JWT
+SESSION_SECRET=your-secret-key
+JWT_SECRET=change-this-secret
+JWT_EXPIRES_IN=1h
+
+# 카카오 로그인 설정
+KAKAO_CLIENT_ID=REST_API_키
+KAKAO_CLIENT_SECRET=클라이언트_시크릿_옵션
+KAKAO_REDIRECT_URI=http://localhost:3000/auth/kakao/callback
+
+# 데이터베이스 설정
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=kasreder
+DB_NAME=oa_asset_manager
+```
 
 ---
 
