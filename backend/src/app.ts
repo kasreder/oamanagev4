@@ -1,8 +1,9 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import session from 'express-session';
-import authRoutes from './routes/auth.routes';
+import routes from './routes';
 import './config/env';
+import { sessionConfig } from './config/auth';
 
 const app: Express = express();
 
@@ -19,21 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 세션 설정
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS에서만 true
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7일
-    },
-  })
-);
+app.use(session(sessionConfig));
 
 // 라우트 설정
-app.use('/auth', authRoutes);
+app.use('/', routes);
 
 // 기본 라우트: 사용 가능한 엔드포인트 안내
 app.get('/', (req: Request, res: Response) => {

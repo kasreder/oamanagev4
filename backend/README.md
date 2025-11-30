@@ -37,6 +37,9 @@ KAKAO_CLIENT_ID=여기에_REST_API_키_입력
 KAKAO_CLIENT_SECRET=클라이언트_시크릿_사용_시_입력(선택)
 KAKAO_REDIRECT_URI=http://localhost:3000/auth/kakao/callback
 
+# 퍼블릭 API 베이스 URL (리다이렉트/로그 안내용)
+API_BASE_URL=http://localhost:3000
+
 # 서버 설정
 PORT=3000
 SESSION_SECRET=랜덤한_시크릿_키_입력
@@ -166,23 +169,33 @@ curl -X POST http://localhost:3000/auth/logout \
 ```
 oamanagev4/
 ├── src/
-│   ├── config/                  # 설정
-│   │   └── database.ts          # DB 연결 설정
+│   ├── index.ts                 # 서버 진입점
+│   ├── app.ts                   # Express 앱 설정
+│   ├── config/                  # 설정 파일
+│   │   ├── auth.ts              # 세션/JWT 설정
+│   │   ├── database.ts          # DB 연결 설정
+│   │   ├── env.ts               # 환경 변수 로드
+│   │   └── social.ts            # 소셜 로그인 설정
 │   ├── controllers/             # 컨트롤러
 │   │   └── auth.controller.ts
-│   ├── middleware/              # 미들웨어
+│   ├── middlewares/             # 미들웨어
 │   │   └── auth.middleware.ts
 │   ├── models/                  # DB 모델
-│   │   └── user.model.ts
+│   │   └── User.ts
 │   ├── routes/                  # 라우트
-│   │   └── auth.routes.ts
+│   │   ├── auth.routes.ts
+│   │   └── index.ts
 │   ├── services/                # 비즈니스 로직
 │   │   └── kakaoAuth.service.ts
-│   ├── types/                   # TypeScript 타입 정의
-│   │   ├── kakao.ts
-│   │   └── session.d.ts
-│   ├── app.ts                   # Express 앱 설정
-│   └── server.ts                # 서버 진입점
+│   ├── repositories/            # DB 접근 계층 (계획)
+│   │   └── README.md
+│   ├── validators/              # 요청 검증 (계획)
+│   │   └── README.md
+│   ├── utils/                   # 유틸리티 (계획)
+│   │   └── README.md
+│   └── types/                   # TypeScript 타입 정의
+│       ├── kakao.ts
+│       └── session.d.ts
 ├── database/                    # 데이터베이스
 │   ├── schema.sql               # DB 스키마
 │   └── init.sh                  # DB 초기화 스크립트

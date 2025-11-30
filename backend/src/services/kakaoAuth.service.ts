@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { KakaoTokenResponse, KakaoUserInfo } from '../types/kakao';
+import { kakaoConfig } from '../config/social';
 
 export class KakaoAuthService {
   private readonly clientId: string;
@@ -9,9 +10,9 @@ export class KakaoAuthService {
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
-    this.clientId = process.env.KAKAO_CLIENT_ID || '';
-    this.clientSecret = process.env.KAKAO_CLIENT_SECRET || '';
-    this.redirectUri = process.env.KAKAO_REDIRECT_URI || '';
+    this.clientId = kakaoConfig.clientId;
+    this.clientSecret = kakaoConfig.clientSecret;
+    this.redirectUri = kakaoConfig.redirectUri;
 
     if (!this.clientId || !this.redirectUri) {
       console.warn(

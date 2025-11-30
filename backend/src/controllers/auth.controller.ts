@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { KakaoAuthService } from '../services/kakaoAuth.service';
-import { UserModel } from '../models/user.model';
+import { UserModel } from '../models/User';
 
 export class AuthController {
   private kakaoAuthService: KakaoAuthService;
