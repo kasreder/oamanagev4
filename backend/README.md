@@ -35,7 +35,7 @@ MySQL을 설치하고 접근 가능한 계정을 준비하세요. 애플리케�
 # 카카오 로그인 설정
 KAKAO_CLIENT_ID=여기에_REST_API_키_입력
 KAKAO_CLIENT_SECRET=클라이언트_시크릿_사용_시_입력(선택)
-KAKAO_REDIRECT_URI=http://localhost:3000/auth/kakao/callback
+KAKAO_REDIRECT_URI=http://localhost:3000/api/v1/auth/kakao/callback
 
 # 퍼블릭 API 베이스 URL (리다이렉트/로그 안내용)
 API_BASE_URL=http://localhost:3000
@@ -64,7 +64,7 @@ DB_NAME=oamanage
    - 사이트 도메인: `http://localhost:3000`
 4. **제품 설정 > 카카오 로그인**
    - 카카오 로그인 활성화
-   - Redirect URI: `http://localhost:3000/auth/kakao/callback` 등록
+   - Redirect URI: `http://localhost:3000/api/v1/auth/kakao/callback` 등록
    - (선택) 클라이언트 시크릿 사용 설정 시 발급된 코드 → `.env`의 `KAKAO_CLIENT_SECRET`에 입력
 5. **앱 키**에서 REST API 키 복사 → `.env`의 `KAKAO_CLIENT_ID`에 입력
 
@@ -88,16 +88,16 @@ npm run start
 | Method | Endpoint | 설명 | 인증 필요 |
 |--------|----------|------|-----------|
 | GET | `/` | 서버 상태 및 인증 엔드포인트 안내 | ❌ |
-| GET | `/auth/kakao` | 카카오 로그인 시작 | ❌ |
-| GET | `/auth/kakao/callback` | 카카오 로그인 콜백 | ❌ |
-| GET | `/auth/me` | 현재 사용자 정보 조회 | ✅ |
-| POST | `/auth/logout` | 로그아웃 | ✅ |
+| GET | `/api/v1/auth/kakao` | 카카오 로그인 시작 | ❌ |
+| GET | `/api/v1/auth/kakao/callback` | 카카오 로그인 콜백 | ❌ |
+| GET | `/api/v1/auth/me` | 현재 사용자 정보 조회 | ✅ |
+| POST | `/api/v1/auth/logout` | 로그아웃 | ✅ |
 
 ### 기타
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| GET | `/health` | 헬스 체크 |
+| GET | `/api/v1/health` | 헬스 체크 |
 
 ## 🔐 사용 방법
 
@@ -105,7 +105,7 @@ npm run start
 
 브라우저에서 다음 URL로 접속:
 ```
-http://localhost:3000/auth/kakao
+http://localhost:3000/api/v1/auth/kakao
 ```
 
 ### 2. 카카오 로그인 페이지
@@ -114,7 +114,7 @@ http://localhost:3000/auth/kakao
 
 ### 3. 로그인 완료
 
-로그인 성공 시 설정한 프론트엔드 URL로 리다이렉트되며, 리다이렉트 URL의 쿼리 파라미터 `code`로 카카오가 반환한 일회용 인가 코드가 함께 전달됩니다. 카카오가 호출한 콜백 요청 전체 URL(예: `http://localhost:3000/auth/kakao/callback?code=...`)도 함께 확인할 수 있습니다.
+로그인 성공 시 설정한 프론트엔드 URL로 리다이렉트되며, 리다이렉트 URL의 쿼리 파라미터 `code`로 카카오가 반환한 일회용 인가 코드가 함께 전달됩니다. 카카오가 호출한 콜백 요청 전체 URL(예: `http://localhost:3000/api/v1/auth/kakao/callback?code=...`)도 함께 확인할 수 있습니다.
 헤더 `Accept: application/json`을 포함해 콜백 엔드포인트를 호출하면 아래와 같이 JSON 응답으로도 인가 코드, 콜백 URL, 사용자 세션 정보를 확인할 수 있습니다.
 
 ```json
@@ -122,7 +122,7 @@ http://localhost:3000/auth/kakao
   "success": true,
   "message": "카카오 로그인에 성공했습니다.",
   "authorizationCode": "인가코드값",
-  "callbackRequestUrl": "http://localhost:3000/auth/kakao/callback?code=인가코드값",
+  "callbackRequestUrl": "http://localhost:3000/api/v1/auth/kakao/callback?code=인가코드값",
   "user": {
     "id": 1,
     "kakaoId": "1234567890",
@@ -139,7 +139,7 @@ DB에 사용자 정보가 저장되고, 세션에 사용자 정보가 저장됩�
 ### 4. 사용자 정보 확인
 
 ```bash
-curl http://localhost:3000/auth/me \
+curl http://localhost:3000/api/v1/auth/me \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
@@ -160,7 +160,7 @@ curl http://localhost:3000/auth/me \
 ### 5. 로그아웃
 
 ```bash
-curl -X POST http://localhost:3000/auth/logout \
+curl -X POST http://localhost:3000/api/v1/auth/logout \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
