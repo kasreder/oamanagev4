@@ -6,7 +6,8 @@ export class KakaoAuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly redirectUri: string;
-  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
+  // private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
+  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/authorize';
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
