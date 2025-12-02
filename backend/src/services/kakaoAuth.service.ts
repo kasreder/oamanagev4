@@ -2,6 +2,13 @@ import axios from 'axios';
 import { KakaoTokenResponse, KakaoUserInfo } from '../types/kakao';
 import { kakaoConfig } from '../config/social';
 
+export class KakaoReauthError extends Error {
+  constructor(message: string, public readonly authorizeUrl: string) {
+    super(message);
+    this.name = 'KakaoReauthError';
+  }
+}
+
 export class KakaoAuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
@@ -109,6 +116,19 @@ export class KakaoAuthService {
         }
       );
 
+      console.log('[KakaoAuthService] 토큰 원본 응답 데이터', response.data);
+
+      if (!response.data?.access_token) {
+        const authorizeUrl = this.getAuthUrl(redirectUri);
+        console.error('[KakaoAuthService] access_token 없음, 재인증 필요', {
+          data: response.data,
+          authorizeUrl,
+        });
+        throw new KakaoReauthError(
+          '카카오에서 access_token을 받지 못했습니다. 다시 로그인해주세요.',
+          authorizeUrl
+        );
+      }
       console.log('[KakaoAuthService] 토큰 요청 성공', {
         expiresIn: response.data.expires_in,
         tokenType: response.data.token_type,
@@ -119,11 +139,21 @@ export class KakaoAuthService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        const authorizeUrl = this.getAuthUrl(redirectUri);
         console.error('[KakaoAuthService] Kakao token error', {
           status: error.response?.status,
           data: error.response?.data,
           headers: error.response?.headers,
+          authorizeUrl,
         });
+
+        if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
+          throw new KakaoReauthError(
+            '카카오 인가 코드가 만료되었습니다. 다시 로그인해주세요.',
+            authorizeUrl
+          );
+        }
+
         throw new Error(
           `Failed to get access token: ${error.response?.data?.error_description || error.message}`
         );
@@ -160,11 +190,18 @@ export class KakaoAuthService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        const authorizeUrl = this.getAuthUrl();
         console.error('[KakaoAuthService] Kakao user info error', {
           status: error.response?.status,
           data: error.response?.data,
           headers: error.response?.headers,
+          authorizeUrl,
         });
+
+        if (error.response?.status === 401) {
+          throw new KakaoReauthError('액세스 토큰이 유효하지 않습니다. 다시 로그인해주세요.', authorizeUrl);
+        }
+
         throw new Error(
           `Failed to get user info: ${error.response?.data?.msg || error.message}`
         );
