@@ -9,12 +9,18 @@ export class AuthController {
     this.kakaoAuthService = new KakaoAuthService();
   }
 
+  private getCallbackUrl(req: Request): string {
+    const apiBaseUrl = process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    return `${apiBaseUrl}/api/v1/auth/kakao/callback`;
+  }
+
   /**
    * 카카오 로그인 시작 (카카오 로그인 페이지로 리다이렉트)
    */
   kakaoLogin = (req: Request, res: Response) => {
     try {
-      const authUrl = this.kakaoAuthService.getAuthUrl();
+      const redirectUri = this.getCallbackUrl(req);
+      const authUrl = this.kakaoAuthService.getAuthUrl(redirectUri);
       res.redirect(authUrl);
     } catch (error) {
       console.error('Kakao login error:', error);
@@ -45,12 +51,17 @@ export class AuthController {
 
       const authorizationCode = String(code);
 
-      const apiBaseUrl =
-        process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`;
-      const callbackRequestUrl = `${apiBaseUrl}${req.originalUrl}`;
+      const queryString = req.originalUrl.includes('?')
+        ? req.originalUrl.substring(req.originalUrl.indexOf('?'))
+        : '';
+      const redirectUri = this.getCallbackUrl(req);
+      const callbackRequestUrl = `${redirectUri}${queryString}`;
 
       // 1. 인가 코드로 액세스 토큰 받기
-      const tokenData = await this.kakaoAuthService.getAccessToken(authorizationCode);
+      const tokenData = await this.kakaoAuthService.getAccessToken(
+        authorizationCode,
+        redirectUri
+      );
 
       // 2. 액세스 토큰으로 사용자 정보 받기
       const userInfo = await this.kakaoAuthService.getUserInfo(tokenData.access_token);
