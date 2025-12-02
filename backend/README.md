@@ -93,6 +93,9 @@ npm run start
 | GET | `/api/v1/auth/me` | 현재 사용자 정보 조회 | ✅ |
 | POST | `/api/v1/auth/logout` | 로그아웃 | ✅ |
 
+> 참고: 예전 경로인 `/auth/kakao` 또는 `/auth/kakao/callback`으로 접근해도 서버가 자동으로 `/api/v1` 프리픽스를 붙여 리다이렉트합니다.
+> 카카오 개발자 콘솔과 프론트엔드 설정은 `/api/v1/auth/kakao/callback` 경로로 맞춰 주세요.
+
 ### 기타
 
 | Method | Endpoint | 설명 |
