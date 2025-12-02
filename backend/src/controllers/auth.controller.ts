@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { KakaoAuthService } from '../services/kakaoAuth.service';
+import { KakaoAuthService, KakaoReauthError } from '../services/kakaoAuth.service';
 import { UserModel } from '../models/User';
 import { kakaoConfig } from '../config/social';
 
@@ -69,6 +69,15 @@ export class AuthController {
         redirectUri
       );
 
+      if (!tokenData?.access_token) {
+        const authorizeUrl = this.kakaoAuthService.getAuthUrl(redirectUri);
+        console.error('Kakao callback error: access_token 누락, 재인증 이동', {
+          tokenData,
+          authorizeUrl,
+        });
+        return res.redirect(authorizeUrl);
+      }
+
       // 2. 액세스 토큰으로 사용자 정보 받기
       const userInfo = await this.kakaoAuthService.getUserInfo(tokenData.access_token);
 
@@ -125,6 +134,15 @@ export class AuthController {
       });
     } catch (error) {
       console.error('Kakao callback error:', error);
+
+      if (error instanceof KakaoReauthError) {
+        const fallbackRedirect = this.kakaoAuthService.getAuthUrl(this.getCallbackUrl(req));
+        console.log('Kakao callback reauth needed, redirecting to authorize', {
+          authorizeUrl: error.authorizeUrl || fallbackRedirect,
+        });
+        return res.redirect(error.authorizeUrl || fallbackRedirect);
+      }
+
       res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
     }
   };
