@@ -20,7 +20,7 @@ export class AuthController {
       console.error('Kakao login error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to initiate Kakao login',
+        message: '카카오 로그인을 시작할 수 없습니다.',
       });
     }
   };
@@ -53,19 +53,19 @@ export class AuthController {
       const tokenData = await this.kakaoAuthService.getAccessToken(authorizationCode);
 
       // 2. 액세스 토큰으로 사용자 정보 받기
-      const userInfo = await this.kakaoAuthService.getUserInfo(
-        tokenData.access_token
-      );
+      const userInfo = await this.kakaoAuthService.getUserInfo(tokenData.access_token);
 
       // 3. DB에서 사용자 찾거나 생성
       const user = await UserModel.findOrCreate({
         kakao_id: String(userInfo.id),
-        nickname: userInfo.properties?.nickname || 
-                  userInfo.kakao_account?.profile?.nickname || 
-                  '사용자',
+        nickname:
+          userInfo.properties?.nickname ||
+          userInfo.kakao_account?.profile?.nickname ||
+          '사용자',
         email: userInfo.kakao_account?.email,
-        profile_image: userInfo.properties?.profile_image || 
-                      userInfo.kakao_account?.profile?.profile_image_url,
+        profile_image:
+          userInfo.properties?.profile_image ||
+          userInfo.kakao_account?.profile?.profile_image_url,
       });
 
       // 4. 세션에 사용자 정보 저장
@@ -75,6 +75,7 @@ export class AuthController {
         nickname: user.nickname,
         email: user.email,
         profileImage: user.profile_image,
+        role: 'user',
       };
 
       // 세션 저장 후 메인 페이지로 리다이렉트
@@ -115,16 +116,17 @@ export class AuthController {
    * 현재 로그인한 사용자 정보 조회
    */
   getCurrentUser = (req: Request, res: Response) => {
-    if (!req.session.user) {
+    const user = req.user || req.session.user;
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Not authenticated',
+        message: '인증되지 않은 사용자입니다.',
       });
     }
 
     res.json({
       success: true,
-      data: req.session.user,
+      data: user,
     });
   };
 
@@ -137,14 +139,14 @@ export class AuthController {
         console.error('Logout error:', err);
         return res.status(500).json({
           success: false,
-          message: 'Failed to logout',
+          message: '로그아웃에 실패했습니다.',
         });
       }
 
       res.clearCookie('connect.sid');
       res.json({
         success: true,
-        message: 'Logged out successfully',
+        message: '정상적으로 로그아웃되었습니다.',
       });
     });
   };

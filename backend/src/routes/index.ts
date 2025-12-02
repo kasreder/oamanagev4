@@ -1,17 +1,15 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
-// 향후 확장을 위해 라우팅만 주석으로 남깁니다.
-// import assetRoutes from './asset.routes';
-// import inspectionRoutes from './inspection.routes';
-// import verificationRoutes from './verification.routes';
-// import userRoutes from './user.routes';
+import assetRoutes from './asset.routes';
+import { publicApiLimiter, authApiLimiter } from '../middlewares/rate-limit.middleware';
 
 const router = Router();
 
-router.use('/auth', authRoutes);
-// router.use('/assets', assetRoutes);
-// router.use('/inspections', inspectionRoutes);
-// router.use('/verifications', verificationRoutes);
-// router.use('/users', userRoutes);
+router.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+router.use('/auth', authApiLimiter, authRoutes);
+router.use('/assets', publicApiLimiter, assetRoutes);
 
 export default router;

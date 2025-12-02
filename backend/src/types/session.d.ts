@@ -8,6 +8,7 @@ declare module 'express-session' {
       nickname: string;
       email?: string;
       profileImage?: string;
+      role?: string;
     };
   }
 }
