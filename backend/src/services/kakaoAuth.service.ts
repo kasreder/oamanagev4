@@ -30,15 +30,17 @@ export class KakaoAuthService {
   /**
    * 카카오 로그인 페이지 URL 생성
    */
-  getAuthUrl(): string {
-    if (!this.clientId || !this.redirectUri) {
+  getAuthUrl(customRedirectUri?: string): string {
+    const redirectUri = customRedirectUri || this.redirectUri;
+
+    if (!this.clientId || !redirectUri) {
       throw new Error('카카오 설정이 없습니다. 환경 변수를 확인하세요.');
     }
 
     const baseUrl = 'https://kauth.kakao.com/oauth/authorize';
     const params = new URLSearchParams({
       client_id: this.clientId,
-      redirect_uri: this.redirectUri,
+      redirect_uri: redirectUri,
       response_type: 'code',
     });
 
@@ -48,8 +50,10 @@ export class KakaoAuthService {
   /**
    * 인가 코드로 액세스 토큰 요청
    */
-  async getAccessToken(code: string): Promise<KakaoTokenResponse> {
-    if (!this.clientId || !this.redirectUri) {
+  async getAccessToken(code: string, customRedirectUri?: string): Promise<KakaoTokenResponse> {
+    const redirectUri = customRedirectUri || this.redirectUri;
+
+    if (!this.clientId || !redirectUri) {
       throw new Error('카카오 설정이 없습니다. 환경 변수를 확인하세요.');
     }
 
@@ -57,7 +61,7 @@ export class KakaoAuthService {
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: this.clientId,
-        redirect_uri: this.redirectUri,
+        redirect_uri: redirectUri,
         code,
       });
 
