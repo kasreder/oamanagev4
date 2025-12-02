@@ -6,7 +6,6 @@ const PORT = process.env.PORT || 3000;
 // DB 연결 테스트 후 서버 시작
 const startServer = async () => {
   try {
-    // DB 연결 테스트
     await db.testConnection();
 
     app.listen(PORT, () => {
@@ -16,14 +15,16 @@ const startServer = async () => {
 ║   🚀 Server is running on port ${PORT}             ║
 ║                                                    ║
 ║   📝 API Endpoints:                                ║
-║   - GET  /health                                   ║
-║   - GET  /auth/kakao                               ║
-║   - GET  /auth/kakao/callback                      ║
-║   - GET  /auth/me                                  ║
-║   - POST /auth/logout                              ║
+║   - GET  /api/v1/health                            ║
+║   - GET  /api/v1/auth/kakao                        ║
+║   - GET  /api/v1/auth/kakao/callback               ║
+║   - GET  /api/v1/auth/me                           ║
+║   - POST /api/v1/auth/logout                       ║
+║   - GET  /api/v1/assets                            ║
+║   - GET  /api/v1/assets/:uid                       ║
 ║                                                    ║
 ║   🔐 Kakao Login:                                  ║
-║   http://localhost:${PORT}/auth/kakao               ║
+║   http://localhost:${PORT}/api/v1/auth/kakao       ║
 ║                                                    ║
 ║   💾 Database: Connected                           ║
 ║                                                    ║

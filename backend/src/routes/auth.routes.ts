@@ -1,36 +1,20 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
-import { isAuthenticated } from '../middlewares/auth.middleware';
+import { requireAuth } from '../middlewares/optional-auth.middleware';
 
 const router = Router();
 const authController = new AuthController();
 
-/**
- * @route   GET /auth/kakao
- * @desc    카카오 로그인 시작
- * @access  Public
- */
+// 카카오 로그인 시작
 router.get('/kakao', authController.kakaoLogin);
 
-/**
- * @route   GET /auth/kakao/callback
- * @desc    카카오 로그인 콜백
- * @access  Public
- */
+// 카카오 로그인 콜백
 router.get('/kakao/callback', authController.kakaoCallback);
 
-/**
- * @route   GET /auth/me
- * @desc    현재 로그인한 사용자 정보 조회
- * @access  Private
- */
-router.get('/me', isAuthenticated, authController.getCurrentUser);
+// 현재 로그인한 사용자 정보 조회
+router.get('/me', requireAuth, authController.getCurrentUser);
 
-/**
- * @route   POST /auth/logout
- * @desc    로그아웃
- * @access  Private
- */
-router.post('/logout', isAuthenticated, authController.logout);
+// 로그아웃
+router.post('/logout', requireAuth, authController.logout);
 
 export default router;
