@@ -20,7 +20,7 @@ export class KakaoAuthService {
       );
     }
 
-    if (!this.clientSecret) {
+   if (!this.clientSecret) {
       console.info(
         '카카오 클라이언트 시크릿이 비어 있습니다. 카카오 개발자 콘솔에서 보안을 사용 설정했다면 KAKAO_CLIENT_SECRET 환경 변수를 추가하세요.'
       );
