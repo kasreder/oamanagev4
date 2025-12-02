@@ -28,6 +28,12 @@ app.use(express.urlencoded({ extended: true }));
 // 세션 설정
 app.use(session(sessionConfig));
 
+// 이전 버전 호환: /auth 경로로 들어오는 요청을 /api/v1/auth로 리다이렉트
+app.use(['/auth/kakao', '/auth/kakao/callback'], (req, res) => {
+  const target = `/api/v1${req.originalUrl}`;
+  res.redirect(308, target);
+});
+
 // API 라우트 설정
 app.use('/api/v1', routes);
 

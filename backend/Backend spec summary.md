@@ -1378,7 +1378,7 @@ JWT_EXPIRES_IN=1h
 # 카카오 로그인 설정
 KAKAO_CLIENT_ID=REST_API_키
 KAKAO_CLIENT_SECRET=클라이언트_시크릿_옵션
-KAKAO_REDIRECT_URI=http://localhost:3000/auth/kakao/callback
+KAKAO_REDIRECT_URI=http://localhost:3000/api/v1/auth/kakao/callback
 
 # 데이터베이스 설정
 DB_HOST=127.0.0.1
