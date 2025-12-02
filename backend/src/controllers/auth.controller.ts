@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { KakaoAuthService } from '../services/kakaoAuth.service';
 import { UserModel } from '../models/User';
+import { kakaoConfig } from '../config/social';
 
 export class AuthController {
   private kakaoAuthService: KakaoAuthService;
@@ -10,7 +11,12 @@ export class AuthController {
   }
 
   private getCallbackUrl(req: Request): string {
-    const apiBaseUrl = process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const configuredRedirectUri = kakaoConfig.redirectUri?.trim();
+    if (configuredRedirectUri) {
+      return configuredRedirectUri;
+    }
+
+    const apiBaseUrl = (process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
     return `${apiBaseUrl}/api/v1/auth/kakao/callback`;
   }
 
