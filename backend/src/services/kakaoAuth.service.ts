@@ -13,7 +13,8 @@ export class KakaoAuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly redirectUri: string;
-  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
+  // private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
+  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/authorize';
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
@@ -128,7 +129,6 @@ export class KakaoAuthService {
           authorizeUrl
         );
       }
-
       console.log('[KakaoAuthService] 토큰 요청 성공', {
         expiresIn: response.data.expires_in,
         tokenType: response.data.token_type,
