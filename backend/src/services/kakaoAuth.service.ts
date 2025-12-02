@@ -20,11 +20,19 @@ export class KakaoAuthService {
       );
     }
 
-   if (!this.clientSecret) {
+    if (!this.clientSecret) {
       console.info(
         '카카오 클라이언트 시크릿이 비어 있습니다. 카카오 개발자 콘솔에서 보안을 사용 설정했다면 KAKAO_CLIENT_SECRET 환경 변수를 추가하세요.'
       );
     }
+
+    console.log('[KakaoAuthService] 초기화 완료', {
+      hasClientId: !!this.clientId,
+      hasRedirectUri: !!this.redirectUri,
+      hasClientSecret: !!this.clientSecret,
+      tokenUrl: this.tokenUrl,
+      userInfoUrl: this.userInfoUrl,
+    });
   }
 
   /**
@@ -37,11 +45,23 @@ export class KakaoAuthService {
       throw new Error('카카오 설정이 없습니다. 환경 변수를 확인하세요.');
     }
 
+    console.log('[KakaoAuthService] getAuthUrl 호출', {
+      redirectUri,
+      hasClientId: !!this.clientId,
+      customRedirectUsed: !!customRedirectUri,
+    });
+
     const baseUrl = 'https://kauth.kakao.com/oauth/authorize';
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
+    });
+
+    console.log('[KakaoAuthService] 생성된 인증 URL 파라미터', {
+      baseUrl,
+      redirectUri,
+      responseType: params.get('response_type'),
     });
 
     return `${baseUrl}?${params.toString()}`;
@@ -58,6 +78,14 @@ export class KakaoAuthService {
     }
 
     try {
+      console.log('[KakaoAuthService] getAccessToken 시작', {
+        redirectUri,
+        hasClientId: !!this.clientId,
+        hasClientSecret: !!this.clientSecret,
+        customRedirectUsed: !!customRedirectUri,
+        codePreview: code?.slice(0, 5),
+      });
+
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: this.clientId,
@@ -67,6 +95,7 @@ export class KakaoAuthService {
 
       if (this.clientSecret) {
         params.append('client_secret', this.clientSecret);
+        console.log('[KakaoAuthService] 클라이언트 시크릿 포함하여 토큰 요청');
       }
 
       const response = await axios.post<KakaoTokenResponse>(
@@ -79,14 +108,27 @@ export class KakaoAuthService {
         }
       );
 
+      console.log('[KakaoAuthService] 토큰 요청 성공', {
+        expiresIn: response.data.expires_in,
+        tokenType: response.data.token_type,
+        refreshToken: !!response.data.refresh_token,
+        scope: response.data.scope,
+      });
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Kakao token error:', error.response?.data);
+        console.error('[KakaoAuthService] Kakao token error', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers,
+        });
         throw new Error(
           `Failed to get access token: ${error.response?.data?.error_description || error.message}`
         );
       }
+
+      console.error('[KakaoAuthService] 토큰 요청 중 알 수 없는 오류', error);
       throw error;
     }
   }
@@ -96,6 +138,11 @@ export class KakaoAuthService {
    */
   async getUserInfo(accessToken: string): Promise<KakaoUserInfo> {
     try {
+      console.log('[KakaoAuthService] getUserInfo 시작', {
+        accessTokenPreview: accessToken?.slice(0, 10),
+        userInfoUrl: this.userInfoUrl,
+      });
+
       const response = await axios.get<KakaoUserInfo>(this.userInfoUrl, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -103,14 +150,26 @@ export class KakaoAuthService {
         },
       });
 
+      console.log('[KakaoAuthService] 사용자 정보 조회 성공', {
+        id: response.data.id,
+        hasKakaoAccount: !!response.data.kakao_account,
+        hasProfile: !!response.data.kakao_account?.profile,
+      });
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Kakao user info error:', error.response?.data);
+        console.error('[KakaoAuthService] Kakao user info error', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers,
+        });
         throw new Error(
           `Failed to get user info: ${error.response?.data?.msg || error.message}`
         );
       }
+
+      console.error('[KakaoAuthService] 사용자 정보 조회 중 알 수 없는 오류', error);
       throw error;
     }
   }
@@ -120,6 +179,10 @@ export class KakaoAuthService {
    */
   async logout(accessToken: string): Promise<void> {
     try {
+      console.log('[KakaoAuthService] logout 시작', {
+        accessTokenPreview: accessToken?.slice(0, 10),
+      });
+
       await axios.post(
         'https://kapi.kakao.com/v1/user/logout',
         {},
@@ -129,10 +192,18 @@ export class KakaoAuthService {
           },
         }
       );
+
+      console.log('[KakaoAuthService] 로그아웃 요청 완료');
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Kakao logout error:', error.response?.data);
+        console.error('[KakaoAuthService] Kakao logout error', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers,
+        });
       }
+
+      console.warn('[KakaoAuthService] 로그아웃 중 예외 발생, 세션은 제거됩니다.', error);
       // 로그아웃 실패해도 세션은 제거됨
     }
   }
