@@ -1,8 +1,15 @@
 import crypto from 'crypto';
 
-interface JwtPayload {
-  [key: string]: unknown;
-}
+type JwtPayload = Record<string, unknown>;
+
+const base64UrlEncode = (input: Buffer | string): string => {
+  const source = typeof input === 'string' ? Buffer.from(input) : input;
+  return source
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+};
 
 const base64UrlDecode = (input: string): Buffer => {
   const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
@@ -18,6 +25,30 @@ const safeJsonParse = (data: Buffer): JwtPayload | null => {
   }
 };
 
+export const signToken = (
+  payload: JwtPayload,
+  secret: string,
+  expiresInSeconds: number
+): string => {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
+  const body = { ...payload, exp };
+
+  const headerB64 = base64UrlEncode(JSON.stringify(header));
+  const payloadB64 = base64UrlEncode(JSON.stringify(body));
+  const data = `${headerB64}.${payloadB64}`;
+
+  const signature = crypto
+    .createHmac('sha256', secret)
+    .update(data)
+    .digest('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+
+  return `${data}.${signature}`;
+};
+
 export const verifyToken = (
   token: string,
   secret: string
@@ -28,7 +59,8 @@ export const verifyToken = (
     return null;
   }
 
-  const [headerB64, payloadB64, signature] = parts;
+  const [headerB64, payloadB4, signature] = parts as [string, string, string];
+  const payloadB64 = payloadB4;
   const data = `${headerB64}.${payloadB64}`;
   const expected = crypto
     .createHmac('sha256', secret)

@@ -2,13 +2,11 @@ import 'express-serve-static-core';
 
 export interface AuthenticatedUser {
   id: number;
-  loginMethod?: string;
-  kakaoId?: string;
-  nickname?: string;
+  provider: 'kakao' | 'naver' | 'google' | 'teams' | 'local';
+  nickname: string;
   email?: string;
-  profileImage?: string;
+  role: 'guest' | 'user' | 'admin';
   score?: number;
-  role?: string;
 }
 
 declare module 'express-serve-static-core' {
