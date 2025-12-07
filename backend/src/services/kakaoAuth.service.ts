@@ -13,14 +13,15 @@ export class KakaoAuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly redirectUri: string;
-  // private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
-  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/authorize';
+  private readonly scope: string;
+  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
     this.clientId = kakaoConfig.clientId;
     this.clientSecret = kakaoConfig.clientSecret;
     this.redirectUri = kakaoConfig.redirectUri;
+    this.scope = kakaoConfig.scope;
 
     if (!this.clientId || !this.redirectUri) {
       console.warn(
@@ -38,6 +39,7 @@ export class KakaoAuthService {
       hasClientId: !!this.clientId,
       hasRedirectUri: !!this.redirectUri,
       hasClientSecret: !!this.clientSecret,
+      hasScope: !!this.scope,
       tokenUrl: this.tokenUrl,
       userInfoUrl: this.userInfoUrl,
     });
@@ -66,10 +68,15 @@ export class KakaoAuthService {
       response_type: 'code',
     });
 
+    if (this.scope) {
+      params.append('scope', this.scope);
+    }
+
     console.log('[KakaoAuthService] 생성된 인증 URL 파라미터', {
       baseUrl,
       redirectUri,
       responseType: params.get('response_type'),
+      scope: params.get('scope'),
     });
 
     return `${baseUrl}?${params.toString()}`;
@@ -106,7 +113,7 @@ export class KakaoAuthService {
         console.log('[KakaoAuthService] 클라이언트 시크릿 포함하여 토큰 요청');
       }
 
-      const response = await axios.post<KakaoTokenResponse>(
+      const response = await axios.post<KakaoTokenResponse | string>(
         this.tokenUrl,
         params.toString(),
         {
@@ -117,6 +124,17 @@ export class KakaoAuthService {
       );
 
       console.log('[KakaoAuthService] 토큰 원본 응답 데이터', response.data);
+
+      if (typeof response.data === 'string') {
+        const authorizeUrl = this.getAuthUrl(redirectUri);
+        console.error('[KakaoAuthService] HTML 응답 수신, 토큰이 아닌 로그인 페이지 반환', {
+          authorizeUrl,
+        });
+        throw new KakaoReauthError(
+          '카카오에서 토큰 대신 로그인 페이지를 반환했습니다. 다시 로그인해주세요.',
+          authorizeUrl
+        );
+      }
 
       if (!response.data?.access_token) {
         const authorizeUrl = this.getAuthUrl(redirectUri);
@@ -146,6 +164,10 @@ export class KakaoAuthService {
           headers: error.response?.headers,
           authorizeUrl,
         });
+
+        if (error.response?.status === 429 || error.response?.data?.error === 'TOO_MANY_ATTEMPTS') {
+          throw new Error('카카오가 로그인 시도가 너무 많다고 응답했습니다. 잠시 후 다시 시도해주세요.');
+        }
 
         if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
           throw new KakaoReauthError(
@@ -186,6 +208,21 @@ export class KakaoAuthService {
         hasKakaoAccount: !!response.data.kakao_account,
         hasProfile: !!response.data.kakao_account?.profile,
       });
+
+      if (!response.data.kakao_account || !response.data.kakao_account.profile) {
+        const authorizeUrl = this.getAuthUrl();
+        console.warn('[KakaoAuthService] 필수 동의 정보 누락, 재동의 필요', {
+          hasKakaoAccount: !!response.data.kakao_account,
+          hasProfile: !!response.data.kakao_account?.profile,
+          authorizeUrl,
+          scope: this.scope,
+        });
+
+        throw new KakaoReauthError(
+          '카카오 프로필 동의 항목이 누락되어 사용자 정보를 받을 수 없습니다. 로그인 화면에서 프로필 제공에 동의해주세요.',
+          authorizeUrl
+        );
+      }
 
       return response.data;
     } catch (error) {
