@@ -13,7 +13,10 @@ export interface TokenPair {
 export class AuthService {
   constructor(private readonly users = new UserRepository()) {}
 
-  socialLogin(provider: AuthenticatedUser['provider'], email?: string): { user: UserRecord; tokens: TokenPair } {
+  socialLogin(
+    provider: NonNullable<AuthenticatedUser['provider']>,
+    email?: string
+  ): { user: UserRecord; tokens: TokenPair } {
     const existing = this.users.findByProviderId(provider, email);
     const user: UserRecord =
       existing ||

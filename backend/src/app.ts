@@ -19,6 +19,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(session(sessionConfig));
+
+app.use(['/auth/kakao', '/auth/kakao/callback'], (req, res) => {
+  const target = `/api/v1${req.originalUrl}`;
+  res.redirect(308, target);
+});
+
 app.use('/api/v1', routes);
 
 app.get('/', (_req: Request, res: Response) => {
@@ -31,12 +38,16 @@ app.get('/', (_req: Request, res: Response) => {
     message: 'OA Asset Manager 백엔드가 실행 중입니다.',
     endpoints: {
       health: `${apiBase}/health`,
+      kakaoLogin: `${apiBase}/auth/kakao`,
+      kakaoCallback: `${apiBase}/auth/kakao/callback`,
       socialLogin: `${apiBase}/auth/social/:provider`,
       refresh: `${apiBase}/auth/refresh`,
+      currentUser: `${apiBase}/auth/me`,
+      logout: `${apiBase}/auth/logout`,
       assets: `${apiBase}/assets`,
       assetDetail: `${apiBase}/assets/:uid`,
       assetReference: `${apiBase}/references/assets`,
-      currentUser: `${apiBase}/users/me`,
+      currentUserByToken: `${apiBase}/users/me`,
     },
   });
 });
