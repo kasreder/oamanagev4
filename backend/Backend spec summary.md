@@ -57,7 +57,7 @@
 
 ### 테이블 관계도
 ```
-users (1) ────< asset_assignments >──── (M) assets
+user (1) ────< asset_assignments >──── (M) assets
   │                                        │
   │                                        │
   └──────────< inspections >───────────────┘
@@ -112,17 +112,19 @@ export const createTablesIfNotExists = async (): Promise<void> => {
   try {
     logger.info('🔄 Checking and creating tables...');
     
-    // 1. users 테이블
+    // 1. user 테이블
     await db.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS user (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         employee_id VARCHAR(32) UNIQUE NOT NULL COMMENT '사번',
         name VARCHAR(64) NOT NULL COMMENT '사용자 이름',
         email VARCHAR(128) UNIQUE COMMENT '이메일',
         phone VARCHAR(32) COMMENT '전화번호',
+        score INT DEFAULT 0 COMMENT '점수',
         role VARCHAR(20) DEFAULT 'user' COMMENT 'user, admin',
         provider VARCHAR(20) COMMENT 'kakao, naver, google, teams',
         provider_id VARCHAR(128) COMMENT '플랫폼별 고유 ID',
+        sns_login ENUM('kakao', 'other') COMMENT 'SNS 로그인 구분',
         department_hq VARCHAR(64) COMMENT '본부',
         department_dept VARCHAR(64) COMMENT '부서',
         department_team VARCHAR(64) COMMENT '팀',
@@ -134,6 +136,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         INDEX idx_provider (provider, provider_id),
         INDEX idx_department (department_team),
         INDEX idx_active (is_active),
+        INDEX idx_sns_login (sns_login),
         INDEX idx_role (role)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
@@ -157,7 +160,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         metadata JSON COMMENT '추가 필드',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (owner_user_id) REFERENCES user(id) ON DELETE SET NULL,
         INDEX idx_status (status),
         INDEX idx_type (asset_type),
         INDEX idx_owner (owner_user_id)
@@ -181,7 +184,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (asset_uid) REFERENCES assets(uid) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL,
         INDEX idx_asset_scanned (asset_uid, scanned_at DESC),
         INDEX idx_synced (synced),
         INDEX idx_status (status)
@@ -201,7 +204,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         sha256 CHAR(64) UNIQUE,
         captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (asset_uid) REFERENCES assets(uid) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
         INDEX idx_asset_user (asset_uid, user_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
@@ -214,7 +217,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         token VARCHAR(512) UNIQUE NOT NULL,
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
         INDEX idx_user (user_id),
         INDEX idx_expires (expires_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -232,7 +235,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         ip_address VARCHAR(45),
         user_agent TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL,
         INDEX idx_user_action (user_id, action),
         INDEX idx_resource (resource_type, resource_id),
         INDEX idx_created (created_at)
@@ -313,19 +316,21 @@ export default app;
 🗄️  Database: oa_asset_manager
 ```
 
-### 1. users 테이블
+### 1. user 테이블
 ```sql
-CREATE TABLE users (
+CREATE TABLE user (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   employee_id VARCHAR(32) UNIQUE NOT NULL COMMENT '사번',
   name VARCHAR(64) NOT NULL COMMENT '사용자 이름',
   email VARCHAR(128) UNIQUE COMMENT '이메일',
   phone VARCHAR(32) COMMENT '전화번호',
-  
+  score INT DEFAULT 0 COMMENT '점수',
+
   -- 소셜 로그인
   provider VARCHAR(20) COMMENT 'kakao, naver, google, teams',
   provider_id VARCHAR(128) COMMENT '플랫폼별 고유 ID',
-  
+  sns_login ENUM('kakao', 'other') COMMENT 'SNS 로그인 구분',
+
   -- 조직 정보
   department_hq VARCHAR(64) COMMENT '본부',
   department_dept VARCHAR(64) COMMENT '부서',
@@ -337,10 +342,11 @@ CREATE TABLE users (
   last_login_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_provider (provider, provider_id),
   INDEX idx_department (department_team),
-  INDEX idx_active (is_active)
+  INDEX idx_active (is_active),
+  INDEX idx_sns_login (sns_login)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
@@ -371,7 +377,7 @@ CREATE TABLE assets (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
-  FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (owner_user_id) REFERENCES user(id) ON DELETE SET NULL,
   INDEX idx_status (status),
   INDEX idx_type (asset_type),
   INDEX idx_owner (owner_user_id)
@@ -403,7 +409,7 @@ CREATE TABLE inspections (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
   FOREIGN KEY (asset_uid) REFERENCES assets(uid) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL,
   INDEX idx_asset_scanned (asset_uid, scanned_at DESC),
   INDEX idx_synced (synced),
   INDEX idx_status (status)
@@ -427,7 +433,7 @@ CREATE TABLE signatures (
   captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
   FOREIGN KEY (asset_uid) REFERENCES assets(uid) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   INDEX idx_asset_user (asset_uid, user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
@@ -441,7 +447,7 @@ CREATE TABLE refresh_tokens (
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   INDEX idx_user (user_id),
   INDEX idx_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -463,7 +469,7 @@ CREATE TABLE audit_logs (
   
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL,
   INDEX idx_user_action (user_id, action),
   INDEX idx_resource (resource_type, resource_id),
   INDEX idx_created (created_at)
@@ -678,11 +684,11 @@ export class AssetService {
 }
 ```
 
-### users 테이블에 role 컬럼 추가
+### user 테이블에 role 컬럼 추가
 
 ```sql
--- migrations/001_create_users.sql 수정
-CREATE TABLE users (
+-- migrations/001_create_user.sql 수정
+CREATE TABLE user (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   employee_id VARCHAR(32) UNIQUE NOT NULL,
   name VARCHAR(64) NOT NULL,
@@ -1135,7 +1141,7 @@ chore: 프로젝트 초기 설정
 feat: 데이터베이스 자동 초기화 구현
 - MySQL 연결 설정
 - 서버 시작 시 자동 테이블 생성 (CREATE TABLE IF NOT EXISTS)
-- 6개 테이블 정의 (users, assets, inspections, signatures, refresh_tokens, audit_logs)
+- 6개 테이블 정의 (user, assets, inspections, signatures, refresh_tokens, audit_logs)
 ```
 
 **참고:** 
@@ -1351,7 +1357,7 @@ backend/
 │   └── types/
 │       ├── kakao.ts            # 카카오 API 응답 타입 정의
 │       └── session.d.ts        # express-session 커스텀 타입
-├── database/schema.sql         # users 테이블 스키마
+├── database/schema.sql         # user 테이블 스키마
 ├── nodemon.json                # 개발용 ts-node 실행 설정
 ├── package.json                # 의존성 및 스크립트
 ├── tsconfig.json               # TypeScript 설정
