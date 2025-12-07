@@ -1,20 +1,40 @@
 import { Request, Response } from 'express';
 import { KakaoAuthService, KakaoReauthError } from '../services/kakaoAuth.service';
 import { UserModel } from '../models/User';
-import { kakaoConfig } from '../config/social';
 import { AuthService } from '../services/auth.service';
 
 const authService = new AuthService();
 
-
-const authService = new AuthService();
-
 export class AuthController {
+  private readonly kakaoAuthService: KakaoAuthService;
+
+  constructor() {
+    this.kakaoAuthService = new KakaoAuthService();
+  }
+
+  private getCallbackUrl(req: Request): string {
+    if (process.env.API_BASE_URL) {
+      return `${process.env.API_BASE_URL}/api/v1/auth/kakao/callback`;
+    }
+
+    const protocol = req.protocol;
+    const host = req.get('host');
+    return `${protocol}://${host}/api/v1/auth/kakao/callback`;
+  }
+
   socialLogin = (req: Request, res: Response) => {
     const provider = req.params.provider as 'kakao' | 'naver' | 'google' | 'teams' | 'local';
     const { email } = req.body;
 
     const { user, tokens } = authService.socialLogin(provider, email);
+
+    res.json({
+      success: true,
+      provider,
+      user,
+      tokens,
+    });
+  };
 
   kakaoLogin = (req: Request, res: Response) => {
     try {
@@ -67,8 +87,7 @@ export class AuthController {
       const userData = {
         login_method: 'kakao',
         kakao_id: String(userInfo.id),
-        nickname:
-          userInfo.properties?.nickname || userInfo.kakao_account?.profile?.nickname || '사용자',
+        nickname: userInfo.properties?.nickname || userInfo.kakao_account?.profile?.nickname || '사용자',
         email: userInfo.kakao_account?.email,
         profile_image:
           userInfo.properties?.profile_image || userInfo.kakao_account?.profile?.profile_image_url,
@@ -101,9 +120,7 @@ export class AuthController {
         role: 'user',
       };
 
-      const redirectUrl = `${process.env.FRONTEND_URL}/?code=${encodeURIComponent(
-        authorizationCode
-      )}`;
+      const redirectUrl = `${process.env.FRONTEND_URL}/?code=${encodeURIComponent(authorizationCode)}`;
 
       const wantsJsonResponse =
         typeof req.headers.accept === 'string' && req.headers.accept.includes('application/json');
@@ -158,8 +175,8 @@ export class AuthController {
       }
 
       res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
-
     }
+  };
 
   getCurrentUser = (req: Request, res: Response) => {
     const user = req.user || req.session?.user;
@@ -190,20 +207,8 @@ export class AuthController {
         });
       }
 
-    res.json({ success: true, tokens });
-  };
-
-  socialLogin = (req: Request, res: Response) => {
-    const provider = req.params.provider as 'kakao' | 'naver' | 'google' | 'teams' | 'local';
-    const { email } = req.body;
-
-    const { user, tokens } = authService.socialLogin(provider, email);
-
-    res.json({
-      success: true,
-      provider,
-      user,
-      tokens,
+      res.clearCookie?.('connect.sid');
+      res.json({ success: true, message: '로그아웃되었습니다.' });
     });
   };
 
