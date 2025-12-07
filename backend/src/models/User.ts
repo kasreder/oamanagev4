@@ -103,10 +103,23 @@ export class UserModel {
         email: userData.email,
         profile_image: userData.profile_image,
       });
+      console.log('[UserModel] 기존 사용자 정보 업데이트', {
+        id: existingUser.id,
+        kakaoId: existingUser.kakao_id,
+        nickname: userData.nickname,
+        email: userData.email,
+      });
       return (await this.findById(existingUser.id!))!;
     }
 
     // 새 사용자 생성
-    return await this.create(userData);
+    const createdUser = await this.create(userData);
+    console.log('[UserModel] 새 사용자 생성', {
+      id: createdUser.id,
+      kakaoId: createdUser.kakao_id,
+      nickname: createdUser.nickname,
+      email: createdUser.email,
+    });
+    return createdUser;
   }
 }
