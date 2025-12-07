@@ -7,7 +7,7 @@ echo "🗄️  Initializing database..."
 # MySQL 접속 정보
 DB_USER=${DB_USER:-root}
 DB_PASSWORD=${DB_PASSWORD:-}
-DB_HOST=${DB_HOST:-localhost}
+DB_HOST=${DB_HOST:-127.0.0.1}
 DB_PORT=${DB_PORT:-3306}
 
 # 비밀번호 입력 프롬프트

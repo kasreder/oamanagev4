@@ -24,7 +24,7 @@ const startServer = async () => {
 ║   - GET  /api/v1/assets/:uid                       ║
 ║                                                    ║
 ║   🔐 Kakao Login:                                  ║
-║   http://localhost:${PORT}/api/v1/auth/kakao       ║
+║   http://127.0.0.1:${PORT}/api/v1/auth/kakao       ║
 ║                                                    ║
 ║   💾 Database: Connected                           ║
 ║                                                    ║

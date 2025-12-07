@@ -40,7 +40,7 @@ app.use('/api/v1', routes);
 // 기본 라우트: 사용 가능한 엔드포인트 안내
 app.get('/', (req: Request, res: Response) => {
   const port = process.env.PORT || 3000;
-  const baseUrl = process.env.API_BASE_URL || `http://localhost:${port}`;
+  const baseUrl = process.env.API_BASE_URL || `http://127.0.0.1:${port}`;
   const apiBase = `${baseUrl}/api/v1`;
 
   res.json({
