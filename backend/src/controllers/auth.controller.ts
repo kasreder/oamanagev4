@@ -11,18 +11,43 @@ export class AuthController {
   }
 
   private getCallbackUrl(req: Request): string {
-    const configuredRedirectUri = kakaoConfig.redirectUri?.trim();
-    if (configuredRedirectUri) {
-      return configuredRedirectUri;
-    }
-
     const forwardedProto = req.get('x-forwarded-proto');
     const forwardedHost = req.get('x-forwarded-host');
     const protocol = forwardedProto?.split(',')[0].trim() || req.protocol;
     const host = forwardedHost || req.get('host');
 
     const apiBaseUrl = (process.env.API_BASE_URL || `${protocol}://${host}`).replace(/\/$/, '');
-    return `${apiBaseUrl}/api/v1/auth/kakao/callback`;
+    const derivedRedirectUri = `${apiBaseUrl}/api/v1/auth/kakao/callback`;
+
+    const configuredRedirectUri = kakaoConfig.redirectUri?.trim();
+    if (configuredRedirectUri) {
+      try {
+        const configured = new URL(configuredRedirectUri);
+        const derived = new URL(derivedRedirectUri);
+        const configuredOrigin = `${configured.protocol}//${configured.host}`;
+        const derivedOrigin = `${derived.protocol}//${derived.host}`;
+
+        if (configuredOrigin !== derivedOrigin) {
+          console.warn('[AuthController] 요청 호스트와 설정된 카카오 리다이렉트 URI가 다릅니다.', {
+            configuredRedirectUri,
+            derivedRedirectUri,
+            forwardedProto,
+            forwardedHost,
+            protocol,
+            host,
+          });
+        }
+      } catch (error) {
+        console.warn('[AuthController] KAKAO_REDIRECT_URI 파싱 중 오류가 발생했습니다.', {
+          configuredRedirectUri,
+          error,
+        });
+      }
+
+      return configuredRedirectUri;
+    }
+
+    return derivedRedirectUri;
   }
 
   /**
