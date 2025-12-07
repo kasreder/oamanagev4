@@ -16,34 +16,37 @@
 
 ### 핵심 기술
 - **Runtime**: Node.js 22.x
-- **Language**: TypeScript 5.3.x
-- **Framework**: Express 4.18.x
+- **Language**: TypeScript 5.7.x
+- **Framework**: Express 4.21.x
 - **Database**: MySQL 8.x
 - **ORM**: mysql2 (Raw SQL) 또는 TypeORM
 
 ### 주요 라이브러리
 ```json
 {
-  "dependencies": {
-    "express": "^4.18.0",
-    "mysql2": "^3.6.0",
-    "jsonwebtoken": "^9.0.0",
-    "bcrypt": "^5.1.0",
-    "dotenv": "^16.3.0",
-    "cors": "^2.8.0",
-    "multer": "^1.4.0",
-    "joi": "^17.11.0",
-    "axios": "^1.6.0",
-    "winston": "^3.11.0",
-    "helmet": "^7.1.0",
-    "compression": "^1.7.0"
+"dependencies": {
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mysql2": "^3.11.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5",
+    "joi": "^17.13.0",
+    "axios": "^1.7.9",
+    "winston": "^3.14.2",
+    "helmet": "^7.2.0",
+    "compression": "^1.7.5"
   },
   "devDependencies": {
-    "typescript": "^5.3.0",
-    "@types/node": "^22.0.0",
-    "@types/express": "^4.17.0",
-    "ts-node": "^10.9.0",
-    "nodemon": "^3.0.0",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.0",
+    "@types/cors": "^2.8.17",
+    "ts-node": "^10.9.2",
+    "nodemon": "^3.1.9",
     "jest": "^29.7.0",
     "eslint": "^8.0.0",
     "prettier": "^3.0.0"
