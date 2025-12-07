@@ -1,8 +1,10 @@
-// src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { KakaoAuthService, KakaoReauthError } from '../services/kakaoAuth.service';
 import { UserModel } from '../models/User';
 import { kakaoConfig } from '../config/social';
+import { AuthService } from '../services/auth.service';
+
+const authService = new AuthService();
 
 export class AuthController {
   private kakaoAuthService: KakaoAuthService;
@@ -51,9 +53,6 @@ export class AuthController {
     return derivedRedirectUri;
   }
 
-  /**
-   * 카카오 로그인 시작 (카카오 로그인 페이지로 리다이렉트)
-   */
   kakaoLogin = (req: Request, res: Response) => {
     try {
       const redirectUri = this.getCallbackUrl(req);
@@ -68,20 +67,15 @@ export class AuthController {
     }
   };
 
-  /**
-   * 카카오 로그인 콜백 처리
-   */
   kakaoCallback = async (req: Request, res: Response) => {
     try {
       const { code, error } = req.query;
 
-      // 사용자가 카카오 로그인을 취소한 경우
       if (error) {
         console.error('Kakao auth error:', error);
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=cancelled`);
       }
 
-      // 인가 코드가 없는 경우
       if (!code || typeof code !== 'string') {
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_code`);
       }
@@ -94,11 +88,7 @@ export class AuthController {
       const redirectUri = this.getCallbackUrl(req);
       const callbackRequestUrl = `${redirectUri}${queryString}`;
 
-      // 1. 인가 코드로 액세스 토큰 받기
-      const tokenData = await this.kakaoAuthService.getAccessToken(
-        authorizationCode,
-        redirectUri
-      );
+      const tokenData = await this.kakaoAuthService.getAccessToken(authorizationCode, redirectUri);
 
       if (!tokenData?.access_token) {
         const authorizeUrl = this.kakaoAuthService.getAuthUrl(redirectUri);
@@ -109,21 +99,16 @@ export class AuthController {
         return res.redirect(authorizeUrl);
       }
 
-      // 2. 액세스 토큰으로 사용자 정보 받기
       const userInfo = await this.kakaoAuthService.getUserInfo(tokenData.access_token);
 
-      // 3. DB에서 사용자 찾거나 생성
       const userData = {
         login_method: 'kakao',
         kakao_id: String(userInfo.id),
         nickname:
-          userInfo.properties?.nickname ||
-          userInfo.kakao_account?.profile?.nickname ||
-          '사용자',
+          userInfo.properties?.nickname || userInfo.kakao_account?.profile?.nickname || '사용자',
         email: userInfo.kakao_account?.email,
         profile_image:
-          userInfo.properties?.profile_image ||
-          userInfo.kakao_account?.profile?.profile_image_url,
+          userInfo.properties?.profile_image || userInfo.kakao_account?.profile?.profile_image_url,
         score: 0,
       };
 
@@ -142,7 +127,6 @@ export class AuthController {
         email: user.email,
       });
 
-      // 4. 세션에 사용자 정보 저장
       req.session.user = {
         id: user.id!,
         loginMethod: user.login_method,
@@ -154,16 +138,14 @@ export class AuthController {
         role: 'user',
       };
 
-      // 세션 저장 후 메인 페이지로 리다이렉트
       const redirectUrl = `${process.env.FRONTEND_URL}/?code=${encodeURIComponent(
         authorizationCode
       )}`;
 
       const wantsJsonResponse =
-        typeof req.headers.accept === 'string' &&
-        req.headers.accept.includes('application/json');
+        typeof req.headers.accept === 'string' && req.headers.accept.includes('application/json');
 
-      req.session.save((err) => {
+      req.session.save((err: unknown) => {
         if (err) {
           console.error('Session save error:', err);
           return res.redirect(`${process.env.FRONTEND_URL}/login?error=session`);
@@ -177,6 +159,7 @@ export class AuthController {
             callbackRequestUrl,
             user: req.session.user,
             redirectUrl,
+            token: tokenData,
           });
         }
 
@@ -215,11 +198,8 @@ export class AuthController {
     }
   };
 
-  /**
-   * 현재 로그인한 사용자 정보 조회
-   */
   getCurrentUser = (req: Request, res: Response) => {
-    const user = req.user || req.session.user;
+    const user = req.user || req.session?.user;
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -233,11 +213,12 @@ export class AuthController {
     });
   };
 
-  /**
-   * 로그아웃
-   */
   logout = (req: Request, res: Response) => {
-    req.session.destroy((err) => {
+    if (!req.session) {
+      return res.status(200).json({ success: true, message: '세션이 없습니다.' });
+    }
+
+    req.session.destroy((err: unknown) => {
       if (err) {
         console.error('Logout error:', err);
         return res.status(500).json({
@@ -252,5 +233,35 @@ export class AuthController {
         message: '정상적으로 로그아웃되었습니다.',
       });
     });
+  };
+
+  socialLogin = (req: Request, res: Response) => {
+    const provider = req.params.provider as 'kakao' | 'naver' | 'google' | 'teams' | 'local';
+    const { email } = req.body;
+
+    const { user, tokens } = authService.socialLogin(provider, email);
+
+    res.json({
+      success: true,
+      provider,
+      user,
+      tokens,
+    });
+  };
+
+  refresh = (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      return res.status(400).json({ success: false, error: 'BAD_REQUEST', message: 'refreshToken이 필요합니다.' });
+    }
+
+    const tokens = authService.refresh(refreshToken);
+
+    if (!tokens) {
+      return res.status(401).json({ success: false, error: 'INVALID_TOKEN', message: '토큰이 유효하지 않습니다.' });
+    }
+
+    res.json({ success: true, tokens });
   };
 }

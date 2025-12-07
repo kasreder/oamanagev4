@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { jwtConfig } from '../config/auth';
+import { NextFunction, Request, Response } from 'express';
+import { authConfig } from '../config/auth';
 import { verifyToken } from '../utils/jwt';
 import { AuthenticatedUser } from '../types/express';
 
@@ -10,62 +10,43 @@ const extractBearerToken = (authorization?: string): string | undefined => {
   return value.trim();
 };
 
-const buildUserFromSession = (req: Request): AuthenticatedUser | undefined => {
-  if (!req.session.user) return undefined;
-  return {
-    ...req.session.user,
-    role: req.session.user.role || 'user',
-  };
-};
+const resolveUserFromToken = (req: Request): AuthenticatedUser | undefined => {
+  const token = extractBearerToken(req.headers.authorization);
+  if (!token) return undefined;
 
-const buildUserFromToken = (token: string): AuthenticatedUser | undefined => {
-  const payload = verifyToken(token, jwtConfig.secret);
+  const payload = verifyToken(token, authConfig.jwtSecret);
   if (!payload || typeof payload !== 'object') return undefined;
 
-  const id = payload.id;
-  if (typeof id !== 'number') return undefined;
+  const { id, provider, nickname, email, role, score } = payload;
+
+  if (typeof id !== 'number' || typeof provider !== 'string' || typeof nickname !== 'string') {
+    return undefined;
+  }
 
   return {
     id,
-    loginMethod:
-      typeof payload.loginMethod === 'string'
-        ? payload.loginMethod
-        : typeof payload.login_method === 'string'
-          ? payload.login_method
-          : undefined,
-    kakaoId: typeof payload.kakaoId === 'string' ? payload.kakaoId : undefined,
-    nickname: typeof payload.nickname === 'string' ? payload.nickname : undefined,
-    email: typeof payload.email === 'string' ? payload.email : undefined,
-    profileImage:
-      typeof payload.profileImage === 'string' ? payload.profileImage : undefined,
-    score: typeof payload.score === 'number' ? payload.score : undefined,
-    role: typeof payload.role === 'string' ? payload.role : 'user',
+    provider: provider as AuthenticatedUser['provider'],
+    nickname,
+    email: typeof email === 'string' ? email : undefined,
+    role: (role as AuthenticatedUser['role']) || 'user',
+    score: typeof score === 'number' ? score : undefined,
   };
 };
 
 const resolveUser = (req: Request): AuthenticatedUser | undefined => {
-  const token = extractBearerToken(req.headers.authorization);
-  if (token) {
-    const user = buildUserFromToken(token);
-    if (user) return user;
+  if (req.session?.user) {
+    return req.session.user;
   }
-  return buildUserFromSession(req);
+
+  return resolveUserFromToken(req);
 };
 
-export const optionalAuth = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
   req.user = resolveUser(req);
   next();
 };
 
-export const requireAuth = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const user = resolveUser(req);
 
   if (!user) {
@@ -80,11 +61,7 @@ export const requireAuth = (
   next();
 };
 
-export const requireAdmin = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   const user = resolveUser(req);
 
   if (!user) {
