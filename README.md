@@ -37,10 +37,10 @@ MySQL을 설치하고 접근 가능한 계정을 준비하세요. 애플리케�
 # 카카오 로그인 설정
 KAKAO_CLIENT_ID=여기에_REST_API_키_입력
 KAKAO_CLIENT_SECRET=클라이언트_시크릿_사용_시_입력(선택)
-KAKAO_REDIRECT_URI=http://localhost:3000/api/v1/auth/kakao/callback
+KAKAO_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/kakao/callback
 
 # 퍼블릭 API 베이스 URL (리다이렉트/로그 안내용)
-API_BASE_URL=http://localhost:3000
+API_BASE_URL=http://127.0.0.1:3000
 
 # 서버 설정
 PORT=3000
@@ -48,10 +48,10 @@ SESSION_SECRET=랜덤한_시크릿_키_입력
 NODE_ENV=development
 
 # 프론트엔드 URL (CORS용)
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://127.0.0.1:3000
 
 # 데이터베이스 설정
-DB_HOST=localhost
+DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=여기에_MySQL_비밀번호_입력
@@ -63,16 +63,16 @@ DB_NAME=oa_asset_manager
 1. [카카오 개발자 콘솔](https://developers.kakao.com/)에 접속
 2. 애플리케이션 생성
 3. **앱 설정 > 플랫폼 설정**에서 Web 플랫폼 추가
-   - 사이트 도메인: `http://localhost:3000`
+   - 사이트 도메인: `http://127.0.0.1:3000`
 4. **제품 설정 > 카카오 로그인**
    - 카카오 로그인 활성화
-   - Redirect URI: `http://localhost:3000/api/v1/auth/kakao/callback` 등록
+   - Redirect URI: `http://127.0.0.1:3000/api/v1/auth/kakao/callback` 등록
    - (선택) 클라이언트 시크릿 사용 설정 시 발급된 코드 → `.env`의 `KAKAO_CLIENT_SECRET`에 입력
 5. **앱 키**에서 REST API 키 복사 → `.env`의 `KAKAO_CLIENT_ID`에 입력
 
-### 4-1. 리다이렉트 불일치 점검 방법 (localhost ↔︎ 127.0.0.1)
+### 4-1. 리다이렉트 불일치 점검 방법 (127.0.0.1 기준)
 
-- 카카오 개발자 콘솔, `.env`의 `KAKAO_REDIRECT_URI`, 실제 요청 호스트(브라우저 주소창)의 **도메인 문자열이 완전히 같아야** 합니다. `localhost`와 `127.0.0.1`은 다른 값이므로 둘 중 하나를 쓰려면 모두 같은 값으로 맞추세요.
+- 카카오 개발자 콘솔, `.env`의 `KAKAO_REDIRECT_URI`, 실제 요청 호스트(브라우저 주소창)의 **도메인 문자열이 완전히 같아야** 합니다. `localhost`와 `127.0.0.1`은 다른 값이므로 모두 `127.0.0.1`로 맞추세요.
 - `127.0.0.1`로 테스트하려면 다음을 모두 변경합니다.
   1. 카카오 개발자 콘솔 > Redirect URI: `http://127.0.0.1:3000/api/v1/auth/kakao/callback`
   2. `.env`의 `KAKAO_REDIRECT_URI`와 `API_BASE_URL`: `http://127.0.0.1:3000`
@@ -93,7 +93,7 @@ npm run build
 npm run start
 ```
 
-서버가 `http://localhost:3000`에서 실행됩니다.
+서버가 `http://127.0.0.1:3000`에서 실행됩니다.
 
 ## 📡 API 엔드포인트
 
@@ -122,7 +122,7 @@ npm run start
 
 브라우저에서 다음 URL로 접속:
 ```
-http://localhost:3000/api/v1/auth/kakao
+http://127.0.0.1:3000/api/v1/auth/kakao
 ```
 
 ### 2. 카카오 로그인 페이지
@@ -131,7 +131,7 @@ http://localhost:3000/api/v1/auth/kakao
 
 ### 3. 로그인 완료
 
-로그인 성공 시 설정한 프론트엔드 URL로 리다이렉트되며, 리다이렉트 URL의 쿼리 파라미터 `code`로 카카오가 반환한 일회용 인가 코드가 함께 전달됩니다. 카카오가 호출한 콜백 요청 전체 URL(예: `http://localhost:3000/api/v1/auth/kakao/callback?code=...`)도 함께 확인할 수 있습니다.
+로그인 성공 시 설정한 프론트엔드 URL로 리다이렉트되며, 리다이렉트 URL의 쿼리 파라미터 `code`로 카카오가 반환한 일회용 인가 코드가 함께 전달됩니다. 카카오가 호출한 콜백 요청 전체 URL(예: `http://127.0.0.1:3000/api/v1/auth/kakao/callback?code=...`)도 함께 확인할 수 있습니다.
 헤더 `Accept: application/json`을 포함해 콜백 엔드포인트를 호출하면 아래와 같이 JSON 응답으로도 인가 코드, 콜백 URL, 사용자 세션 정보를 확인할 수 있습니다.
 
 ```json
@@ -139,7 +139,7 @@ http://localhost:3000/api/v1/auth/kakao
   "success": true,
   "message": "카카오 로그인에 성공했습니다.",
   "authorizationCode": "인가코드값",
-  "callbackRequestUrl": "http://localhost:3000/api/v1/auth/kakao/callback?code=인가코드값",
+  "callbackRequestUrl": "http://127.0.0.1:3000/api/v1/auth/kakao/callback?code=인가코드값",
   "user": {
     "id": 1,
     "kakaoId": "1234567890",
@@ -147,7 +147,7 @@ http://localhost:3000/api/v1/auth/kakao
     "email": "user@example.com",
     "profileImage": "http://..."
   },
-  "redirectUrl": "http://localhost:3000/?code=인가코드값"
+  "redirectUrl": "http://127.0.0.1:3000/?code=인가코드값"
 }
 ```
 
@@ -156,7 +156,7 @@ DB에 사용자 정보가 저장되고, 세션에 사용자 정보가 저장됩�
 ### 4. 사용자 정보 확인
 
 ```bash
-curl http://localhost:3000/api/v1/auth/me \
+curl http://127.0.0.1:3000/api/v1/auth/me \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
@@ -177,7 +177,7 @@ curl http://localhost:3000/api/v1/auth/me \
 ### 5. 로그아웃
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/auth/logout \
+curl -X POST http://127.0.0.1:3000/api/v1/auth/logout \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
