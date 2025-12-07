@@ -68,6 +68,18 @@ DB_NAME=oamanage
    - (선택) 클라이언트 시크릿 사용 설정 시 발급된 코드 → `.env`의 `KAKAO_CLIENT_SECRET`에 입력
 5. **앱 키**에서 REST API 키 복사 → `.env`의 `KAKAO_CLIENT_ID`에 입력
 
+### 4-1. 리다이렉트 불일치 점검 방법 (localhost ↔︎ 127.0.0.1)
+
+- 카카오 개발자 콘솔, `.env`의 `KAKAO_REDIRECT_URI`, 실제 요청 호스트(브라우저 주소창)의 **도메인 문자열이 완전히 같아야** 합니다. `localhost`와 `127.0.0.1`은 다른 값이므로 둘 중 하나를 쓰려면 모두 같은 값으로 맞추세요.
+- `127.0.0.1`로 테스트하려면 다음을 모두 변경합니다.
+  1. 카카오 개발자 콘솔 > Redirect URI: `http://127.0.0.1:3000/api/v1/auth/kakao/callback`
+  2. `.env`의 `KAKAO_REDIRECT_URI`와 `API_BASE_URL`: `http://127.0.0.1:3000`
+  3. 브라우저 접속 주소: `http://127.0.0.1:3000/api/v1/auth/kakao`
+- 불일치 여부 확인 절차
+  1. 서버 실행: `npm run dev`
+  2. 카카오 로그인 시도 후 터미널 로그에서 `authorizeUrl`의 `redirect_uri`가 Kakao 콘솔에 등록한 값과 같은지 확인합니다. 값이 다르면 `KOE303 (Redirect URI mismatch)`가 발생합니다.
+  3. 필요 시 `KAKAO_REDIRECT_URI`를 비워 두면 서버가 현재 요청 호스트를 기준으로 콜백 URL을 계산하므로, 다시 로그인해 `authorizeUrl`에 표시된 값이 브라우저 접속 주소와 일치하는지 확인합니다.
+
 ### 5. 개발 서버 실행
 
 ```bash
