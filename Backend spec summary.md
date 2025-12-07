@@ -888,6 +888,15 @@ GET /api/v1/auth/teams/callback
 - 성공 시 `status=success`와 함께 `code` 또는 `access_token` 전달
 - 실패 시 `status=error`와 함께 `error`, `error_description` 전달
 
+### 1-1. 카카오 로그인 시작 엔드포인트 (실제 코드 기준)
+
+```http
+GET /api/v1/auth/kakao
+```
+
+- 이 엔드포인트는 `backend/src/routes/auth.routes.ts`에서 `AuthController.kakaoLogin`으로 연결되며, 카카오 OAuth 로그인 URL로 302 Redirect를 수행합니다.
+- 리다이렉트 대상 URL의 `redirect_uri`는 `.env`의 `API_BASE_URL`을 기준으로 `${API_BASE_URL}/api/v1/auth/kakao/callback`으로 구성되어 실제 콜백 엔드포인트와 일치합니다.
+
 ### 2. 소셜 로그인 토큰 교환
 ```
 POST /api/v1/auth/social/{provider}
