@@ -13,6 +13,7 @@ export class KakaoAuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly redirectUri: string;
+  private readonly scope: string;
   private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
@@ -20,6 +21,7 @@ export class KakaoAuthService {
     this.clientId = kakaoConfig.clientId;
     this.clientSecret = kakaoConfig.clientSecret;
     this.redirectUri = kakaoConfig.redirectUri;
+    this.scope = kakaoConfig.scope;
 
     if (!this.clientId || !this.redirectUri) {
       console.warn(
@@ -37,6 +39,7 @@ export class KakaoAuthService {
       hasClientId: !!this.clientId,
       hasRedirectUri: !!this.redirectUri,
       hasClientSecret: !!this.clientSecret,
+      hasScope: !!this.scope,
       tokenUrl: this.tokenUrl,
       userInfoUrl: this.userInfoUrl,
     });
@@ -65,10 +68,15 @@ export class KakaoAuthService {
       response_type: 'code',
     });
 
+    if (this.scope) {
+      params.append('scope', this.scope);
+    }
+
     console.log('[KakaoAuthService] 생성된 인증 URL 파라미터', {
       baseUrl,
       redirectUri,
       responseType: params.get('response_type'),
+      scope: params.get('scope'),
     });
 
     return `${baseUrl}?${params.toString()}`;
@@ -200,6 +208,21 @@ export class KakaoAuthService {
         hasKakaoAccount: !!response.data.kakao_account,
         hasProfile: !!response.data.kakao_account?.profile,
       });
+
+      if (!response.data.kakao_account || !response.data.kakao_account.profile) {
+        const authorizeUrl = this.getAuthUrl();
+        console.warn('[KakaoAuthService] 필수 동의 정보 누락, 재동의 필요', {
+          hasKakaoAccount: !!response.data.kakao_account,
+          hasProfile: !!response.data.kakao_account?.profile,
+          authorizeUrl,
+          scope: this.scope,
+        });
+
+        throw new KakaoReauthError(
+          '카카오 프로필 동의 항목이 누락되어 사용자 정보를 받을 수 없습니다. 로그인 화면에서 프로필 제공에 동의해주세요.',
+          authorizeUrl
+        );
+      }
 
       return response.data;
     } catch (error) {
