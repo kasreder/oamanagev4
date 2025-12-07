@@ -1,8 +1,13 @@
+// src/services/kakaoAuth.service.ts
 import axios from 'axios';
 import { KakaoTokenResponse, KakaoUserInfo } from '../types/kakao';
 import { kakaoConfig } from '../config/social';
 
 export type KakaoReauthReason = 'code' | 'scope' | 'redirect';
+
+type KakaoAuthUrlOptions = {
+  forceReconsent?: boolean;
+};
 
 export class KakaoReauthError extends Error {
   constructor(
@@ -54,7 +59,7 @@ export class KakaoAuthService {
   /**
    * 카카오 로그인 페이지 URL 생성
    */
-  getAuthUrl(customRedirectUri?: string): string {
+  getAuthUrl(customRedirectUri?: string, options?: KakaoAuthUrlOptions): string {
     const redirectUri = customRedirectUri || this.redirectUri;
 
     if (!this.clientId || !redirectUri) {
@@ -74,8 +79,13 @@ export class KakaoAuthService {
       response_type: 'code',
     });
 
-    if (this.scope) {
-      params.append('scope', this.scope);
+    const scope = this.scope;
+    if (scope) {
+      params.append('scope', scope);
+    }
+
+    if (options?.forceReconsent) {
+      params.append('prompt', 'login');
     }
 
     console.log('[KakaoAuthService] 생성된 인증 URL 파라미터', {
@@ -163,10 +173,13 @@ export class KakaoAuthService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const authorizeUrl = this.getAuthUrl(redirectUri);
         const errorData = error.response?.data as { [key: string]: any } | undefined;
         const errorCode = errorData?.error_code || errorData?.error;
         const errorDescription = errorData?.error_description || '';
+        const needsReconsent = errorCode === 'invalid_scope';
+        const authorizeUrl = this.getAuthUrl(redirectUri, {
+          forceReconsent: needsReconsent,
+        });
 
         console.error('[KakaoAuthService] Kakao token error', {
           status: error.response?.status,
@@ -244,7 +257,7 @@ export class KakaoAuthService {
       });
 
       if (!response.data.kakao_account || !response.data.kakao_account.profile) {
-        const authorizeUrl = this.getAuthUrl();
+        const authorizeUrl = this.getAuthUrl(undefined, { forceReconsent: true });
         console.warn('[KakaoAuthService] 필수 동의 정보 누락, 재동의 필요', {
           hasKakaoAccount: !!response.data.kakao_account,
           hasProfile: !!response.data.kakao_account?.profile,
@@ -254,14 +267,15 @@ export class KakaoAuthService {
 
         throw new KakaoReauthError(
           '카카오 프로필 동의 항목이 누락되어 사용자 정보를 받을 수 없습니다. 로그인 화면에서 프로필 제공에 동의해주세요.',
-          authorizeUrl
+          authorizeUrl,
+          'scope'
         );
       }
 
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const authorizeUrl = this.getAuthUrl();
+        const authorizeUrl = this.getAuthUrl(undefined, { forceReconsent: true });
         console.error('[KakaoAuthService] Kakao user info error', {
           status: error.response?.status,
           data: error.response?.data,
