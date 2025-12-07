@@ -82,7 +82,7 @@ export class AuthController {
       const userInfo = await this.kakaoAuthService.getUserInfo(tokenData.access_token);
 
       // 3. DB에서 사용자 찾거나 생성
-      const user = await UserModel.findOrCreate({
+      const userData = {
         kakao_id: String(userInfo.id),
         nickname:
           userInfo.properties?.nickname ||
@@ -92,6 +92,21 @@ export class AuthController {
         profile_image:
           userInfo.properties?.profile_image ||
           userInfo.kakao_account?.profile?.profile_image_url,
+      };
+
+      console.log('[AuthController] 사용자 DB 저장 시도', {
+        kakaoId: userData.kakao_id,
+        nickname: userData.nickname,
+        email: userData.email,
+      });
+
+      const user = await UserModel.findOrCreate(userData);
+
+      console.log('[AuthController] 사용자 DB 저장 완료', {
+        id: user.id,
+        kakaoId: user.kakao_id,
+        nickname: user.nickname,
+        email: user.email,
       });
 
       // 4. 세션에 사용자 정보 저장
