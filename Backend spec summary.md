@@ -787,7 +787,7 @@ router.use('/auth', authApiLimiter);
 
 #### 개발 환경 (127.0.0.1)
 ```env
-KAKAO_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/kakao/callback
+KAKAO_REDIRECT_URI=${API_BASE_URL}/api/v1/auth/kakao/callback
 NAVER_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/naver/callback
 GOOGLE_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/google/callback
 TEAMS_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/teams/callback
@@ -795,7 +795,7 @@ TEAMS_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/teams/callback
 
 #### 프로덕션 환경
 ```env
-KAKAO_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/kakao/callback
+KAKAO_REDIRECT_URI=${API_BASE_URL}/api/v1/auth/kakao/callback
 NAVER_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/naver/callback
 GOOGLE_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/google/callback
 TEAMS_REDIRECT_URI=https://api.yourdomain.com/api/v1/auth/teams/callback
@@ -859,8 +859,8 @@ export const kakaoCallback = async (req: Request, res: Response) => {
 ### 브라우저 테스트 URL
 
 ```
-# 카카오
-https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri=http://127.0.0.1:3000/api/v1/auth/kakao/callback&response_type=code
+# 카카오 (실제 백엔드 라우트 기준)
+https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri=${API_BASE_URL}/api/v1/auth/kakao/callback&response_type=code
 
 # 네이버
 https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri=http://127.0.0.1:3000/api/v1/auth/naver/callback&state=RANDOM
@@ -1388,7 +1388,8 @@ JWT_EXPIRES_IN=1h
 # 카카오 로그인 설정
 KAKAO_CLIENT_ID=REST_API_키
 KAKAO_CLIENT_SECRET=클라이언트_시크릿_옵션
-KAKAO_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/kakao/callback
+# 백엔드 라우트(/api/v1/auth/kakao/callback)에 맞춘 실제 콜백 주소
+KAKAO_REDIRECT_URI=${API_BASE_URL}/api/v1/auth/kakao/callback
 
 # 데이터베이스 설정
 DB_HOST=127.0.0.1
