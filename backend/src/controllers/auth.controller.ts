@@ -1,3 +1,4 @@
+// src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { KakaoAuthService, KakaoReauthError } from '../services/kakaoAuth.service';
 import { UserModel } from '../models/User';
