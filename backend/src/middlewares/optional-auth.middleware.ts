@@ -11,6 +11,7 @@ const extractBearerToken = (authorization?: string): string | undefined => {
 };
 
 const resolveUserFromToken = (req: Request): AuthenticatedUser | undefined => {
+
   const token = extractBearerToken(req.headers.authorization);
   if (!token) return undefined;
 
@@ -40,7 +41,6 @@ const resolveUser = (req: Request): AuthenticatedUser | undefined => {
 
   return resolveUserFromToken(req);
 };
-
 export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
   req.user = resolveUser(req);
   next();

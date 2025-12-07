@@ -1,9 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import session from 'express-session';
 import routes from './routes';
 import './config/env';
-import { sessionConfig } from './config/auth';
 
 const app: Express = express();
 

@@ -1,4 +1,3 @@
-import { SessionOptions } from 'express-session';
 import './env';
 
 export const authConfig = {
@@ -17,3 +16,4 @@ export const sessionConfig: SessionOptions = {
     maxAge: 1000 * 60 * 60 * 24 * 7,
   },
 };
+
