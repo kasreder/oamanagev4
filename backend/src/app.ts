@@ -1,16 +1,11 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import session from 'express-session';
 import routes from './routes';
 import './config/env';
-import { sessionConfig } from './config/auth';
 
 const app: Express = express();
 
-// CORS 설정
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : '*';
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*';
 
 app.use(
   cors({
@@ -21,24 +16,12 @@ app.use(
   })
 );
 
-// Body parser 미들웨어
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 세션 설정
-app.use(session(sessionConfig));
-
-// 이전 버전 호환: /auth 경로로 들어오는 요청을 /api/v1/auth로 리다이렉트
-app.use(['/auth/kakao', '/auth/kakao/callback'], (req, res) => {
-  const target = `/api/v1${req.originalUrl}`;
-  res.redirect(308, target);
-});
-
-// API 라우트 설정
 app.use('/api/v1', routes);
 
-// 기본 라우트: 사용 가능한 엔드포인트 안내
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   const port = process.env.PORT || 3000;
   const baseUrl = process.env.API_BASE_URL || `http://127.0.0.1:${port}`;
   const apiBase = `${baseUrl}/api/v1`;
@@ -48,24 +31,20 @@ app.get('/', (req: Request, res: Response) => {
     message: 'OA Asset Manager 백엔드가 실행 중입니다.',
     endpoints: {
       health: `${apiBase}/health`,
-      kakaoLogin: `${apiBase}/auth/kakao`,
-      kakaoCallback: `${apiBase}/auth/kakao/callback`,
-      currentUser: `${apiBase}/auth/me`,
-      logout: `${apiBase}/auth/logout`,
+      socialLogin: `${apiBase}/auth/social/:provider`,
+      refresh: `${apiBase}/auth/refresh`,
       assets: `${apiBase}/assets`,
+      assetDetail: `${apiBase}/assets/:uid`,
+      assetReference: `${apiBase}/references/assets`,
+      currentUser: `${apiBase}/users/me`,
     },
   });
 });
 
-// 404 핸들러
 app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    message: '요청한 경로를 찾을 수 없습니다.',
-  });
+  res.status(404).json({ success: false, message: '요청한 경로를 찾을 수 없습니다.' });
 });
 
-// 에러 핸들러
 app.use((err: Error, _req: Request, res: Response, _next: any) => {
   console.error('Error:', err);
   res.status(500).json({

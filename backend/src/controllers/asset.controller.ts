@@ -5,12 +5,12 @@ const assetService = new AssetService();
 
 export class AssetController {
   getAssets = (req: Request, res: Response) => {
-    const assets = assetService.getAssets(req.user);
+    const assets = assetService.list(req.user);
     res.json({ success: true, data: assets });
   };
 
   getAssetByUid = (req: Request, res: Response) => {
-    const asset = assetService.getAssetByUid(req.params.uid, req.user);
+    const asset = assetService.find(req.params.uid, req.user);
 
     if (!asset) {
       return res.status(404).json({
@@ -24,12 +24,12 @@ export class AssetController {
   };
 
   createAsset = (req: Request, res: Response) => {
-    const created = assetService.createAsset(req.body);
+    const created = assetService.create(req.body);
     res.status(201).json({ success: true, data: created });
   };
 
   updateAsset = (req: Request, res: Response) => {
-    const updated = assetService.updateAsset(req.params.uid, req.body);
+    const updated = assetService.update(req.params.uid, req.body);
 
     if (!updated) {
       return res.status(404).json({
@@ -43,7 +43,7 @@ export class AssetController {
   };
 
   deleteAsset = (req: Request, res: Response) => {
-    const removed = assetService.deleteAsset(req.params.uid);
+    const removed = assetService.remove(req.params.uid);
 
     if (!removed) {
       return res.status(404).json({
