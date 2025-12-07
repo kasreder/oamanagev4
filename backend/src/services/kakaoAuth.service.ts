@@ -13,8 +13,7 @@ export class KakaoAuthService {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly redirectUri: string;
-  // private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
-  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/authorize';
+  private readonly tokenUrl = 'https://kauth.kakao.com/oauth/token';
   private readonly userInfoUrl = 'https://kapi.kakao.com/v2/user/me';
 
   constructor() {
@@ -106,7 +105,7 @@ export class KakaoAuthService {
         console.log('[KakaoAuthService] 클라이언트 시크릿 포함하여 토큰 요청');
       }
 
-      const response = await axios.post<KakaoTokenResponse>(
+      const response = await axios.post<KakaoTokenResponse | string>(
         this.tokenUrl,
         params.toString(),
         {
@@ -117,6 +116,17 @@ export class KakaoAuthService {
       );
 
       console.log('[KakaoAuthService] 토큰 원본 응답 데이터', response.data);
+
+      if (typeof response.data === 'string') {
+        const authorizeUrl = this.getAuthUrl(redirectUri);
+        console.error('[KakaoAuthService] HTML 응답 수신, 토큰이 아닌 로그인 페이지 반환', {
+          authorizeUrl,
+        });
+        throw new KakaoReauthError(
+          '카카오에서 토큰 대신 로그인 페이지를 반환했습니다. 다시 로그인해주세요.',
+          authorizeUrl
+        );
+      }
 
       if (!response.data?.access_token) {
         const authorizeUrl = this.getAuthUrl(redirectUri);
@@ -146,6 +156,10 @@ export class KakaoAuthService {
           headers: error.response?.headers,
           authorizeUrl,
         });
+
+        if (error.response?.status === 429 || error.response?.data?.error === 'TOO_MANY_ATTEMPTS') {
+          throw new Error('카카오가 로그인 시도가 너무 많다고 응답했습니다. 잠시 후 다시 시도해주세요.');
+        }
 
         if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
           throw new KakaoReauthError(
