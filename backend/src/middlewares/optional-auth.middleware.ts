@@ -27,11 +27,18 @@ const buildUserFromToken = (token: string): AuthenticatedUser | undefined => {
 
   return {
     id,
+    loginMethod:
+      typeof payload.loginMethod === 'string'
+        ? payload.loginMethod
+        : typeof payload.login_method === 'string'
+          ? payload.login_method
+          : undefined,
     kakaoId: typeof payload.kakaoId === 'string' ? payload.kakaoId : undefined,
     nickname: typeof payload.nickname === 'string' ? payload.nickname : undefined,
     email: typeof payload.email === 'string' ? payload.email : undefined,
     profileImage:
       typeof payload.profileImage === 'string' ? payload.profileImage : undefined,
+    score: typeof payload.score === 'number' ? payload.score : undefined,
     role: typeof payload.role === 'string' ? payload.role : 'user',
   };
 };

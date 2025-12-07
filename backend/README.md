@@ -27,6 +27,8 @@ npm install
 
 MySQL을 설치하고 접근 가능한 계정을 준비하세요. 애플리케이션이 시작될 때 `DB_NAME`에 지정한 데이터베이스와 `users` 테이블을 자동으로 생성합니다. (초기 설정이 잘못되면 서버가 시작되지 않으니, 환경 변수를 정확히 입력하세요.)
 
+> `backend/database/schema.sql`은 **동일한 초기 스키마를 수동으로 실행할 때 쓰는 참고용** SQL 파일입니다. 서버가 자체적으로 DB와 테이블을 만들기 때문에 필수는 아니지만, 수동 초기화나 DB 덤프 관리에 활용하려면 삭제하지 않는 편이 좋습니다.
+
 ### 3. 환경 변수 설정
 
 `.env` 파일에 다음 내용을 입력하세요:
@@ -53,7 +55,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=여기에_MySQL_비밀번호_입력
-DB_NAME=oamanage
+DB_NAME=oa_asset_manager
 ```
 
 ### 4. 카카오 개발자 설정

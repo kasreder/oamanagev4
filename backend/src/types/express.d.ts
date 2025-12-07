@@ -2,10 +2,12 @@ import 'express-serve-static-core';
 
 export interface AuthenticatedUser {
   id: number;
+  loginMethod?: string;
   kakaoId?: string;
   nickname?: string;
   email?: string;
   profileImage?: string;
+  score?: number;
   role?: string;
 }
 
