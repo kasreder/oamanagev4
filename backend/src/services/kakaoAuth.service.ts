@@ -2,8 +2,14 @@ import axios from 'axios';
 import { KakaoTokenResponse, KakaoUserInfo } from '../types/kakao';
 import { kakaoConfig } from '../config/social';
 
+export type KakaoReauthReason = 'code' | 'scope' | 'redirect';
+
 export class KakaoReauthError extends Error {
-  constructor(message: string, public readonly authorizeUrl: string) {
+  constructor(
+    message: string,
+    public readonly authorizeUrl: string,
+    public readonly reason: KakaoReauthReason = 'code'
+  ) {
     super(message);
     this.name = 'KakaoReauthError';
   }
@@ -158,26 +164,54 @@ export class KakaoAuthService {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const authorizeUrl = this.getAuthUrl(redirectUri);
+        const errorData = error.response?.data as { [key: string]: any } | undefined;
+        const errorCode = errorData?.error_code || errorData?.error;
+        const errorDescription = errorData?.error_description || '';
+
         console.error('[KakaoAuthService] Kakao token error', {
           status: error.response?.status,
-          data: error.response?.data,
+          data: errorData,
           headers: error.response?.headers,
           authorizeUrl,
         });
 
-        if (error.response?.status === 429 || error.response?.data?.error === 'TOO_MANY_ATTEMPTS') {
+        if (error.response?.status === 429 || errorData?.error === 'TOO_MANY_ATTEMPTS') {
           throw new Error('카카오가 로그인 시도가 너무 많다고 응답했습니다. 잠시 후 다시 시도해주세요.');
         }
 
-        if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
+        const redirectMismatch = /redirect uri mismatch/i.test(errorDescription || '');
+        const codeExpired =
+          error.response?.status === 401 ||
+          error.response?.status === 400 ||
+          errorCode === 'invalid_grant' ||
+          /authorization code/i.test(errorDescription || '');
+
+        if (redirectMismatch || errorCode === 'KOE303') {
           throw new KakaoReauthError(
-            '카카오 인가 코드가 만료되었습니다. 다시 로그인해주세요.',
-            authorizeUrl
+            '카카오 리다이렉트 주소가 일치하지 않아 다시 인증이 필요합니다. 로그인부터 다시 진행해주세요.',
+            authorizeUrl,
+            'redirect'
+          );
+        }
+
+        if (errorCode === 'invalid_scope') {
+          throw new KakaoReauthError(
+            '카카오 필수 동의 항목이 누락되었습니다. 동의를 위해 다시 로그인해주세요.',
+            authorizeUrl,
+            'scope'
+          );
+        }
+
+        if (codeExpired) {
+          throw new KakaoReauthError(
+            '카카오 인가 코드가 만료되었거나 이미 사용되었습니다. 로그인부터 다시 진행해주세요.',
+            authorizeUrl,
+            'code'
           );
         }
 
         throw new Error(
-          `Failed to get access token: ${error.response?.data?.error_description || error.message}`
+          `Failed to get access token: ${errorDescription || error.message}`
         );
       }
 

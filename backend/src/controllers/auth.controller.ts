@@ -16,7 +16,12 @@ export class AuthController {
       return configuredRedirectUri;
     }
 
-    const apiBaseUrl = (process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const forwardedProto = req.get('x-forwarded-proto');
+    const forwardedHost = req.get('x-forwarded-host');
+    const protocol = forwardedProto?.split(',')[0].trim() || req.protocol;
+    const host = forwardedHost || req.get('host');
+
+    const apiBaseUrl = (process.env.API_BASE_URL || `${protocol}://${host}`).replace(/\/$/, '');
     return `${apiBaseUrl}/api/v1/auth/kakao/callback`;
   }
 
@@ -150,12 +155,30 @@ export class AuthController {
     } catch (error) {
       console.error('Kakao callback error:', error);
 
+      const wantsJsonResponse =
+        typeof req.headers.accept === 'string' && req.headers.accept.includes('application/json');
+
       if (error instanceof KakaoReauthError) {
         const fallbackRedirect = this.kakaoAuthService.getAuthUrl(this.getCallbackUrl(req));
+        const authorizeUrl = error.authorizeUrl || fallbackRedirect;
         console.log('Kakao callback reauth needed, redirecting to authorize', {
-          authorizeUrl: error.authorizeUrl || fallbackRedirect,
+          authorizeUrl,
+          reason: error.reason,
         });
-        return res.redirect(error.authorizeUrl || fallbackRedirect);
+
+        if (wantsJsonResponse) {
+          return res.status(401).json({
+            success: false,
+            message: error.message,
+            authorizeUrl,
+            reason: error.reason,
+          });
+        }
+
+        const loginUrl = `${process.env.FRONTEND_URL}/login?error=${error.reason}&authorizeUrl=${encodeURIComponent(
+          authorizeUrl
+        )}`;
+        return res.redirect(loginUrl);
       }
 
       res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
