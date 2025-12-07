@@ -97,16 +97,15 @@ export class UserModel {
     const existingUser = await this.findByKakaoId(userData.kakao_id);
 
     if (existingUser) {
-      // 기존 사용자 정보 업데이트
+      // 기존 사용자 정보는 닉네임을 유지하고 필요한 정보만 업데이트
       await this.update(existingUser.id!, {
-        nickname: userData.nickname,
         email: userData.email,
         profile_image: userData.profile_image,
       });
-      console.log('[UserModel] 기존 사용자 정보 업데이트', {
+      console.log('[UserModel] 기존 사용자 정보 업데이트 (닉네임 유지)', {
         id: existingUser.id,
         kakaoId: existingUser.kakao_id,
-        nickname: userData.nickname,
+        nickname: existingUser.nickname,
         email: userData.email,
       });
       return (await this.findById(existingUser.id!))!;

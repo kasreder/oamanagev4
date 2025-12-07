@@ -109,6 +109,7 @@ export class KakaoAuthService {
     }
 
     try {
+      // 파라미터 구성
       console.log('[KakaoAuthService] getAccessToken 시작', {
         redirectUri,
         hasClientId: !!this.clientId,
@@ -129,6 +130,7 @@ export class KakaoAuthService {
         console.log('[KakaoAuthService] 클라이언트 시크릿 포함하여 토큰 요청');
       }
 
+      // 카카오 토큰 요청
       const response = await axios.post<KakaoTokenResponse | string>(
         this.tokenUrl,
         params.toString(),
@@ -141,6 +143,7 @@ export class KakaoAuthService {
 
       console.log('[KakaoAuthService] 토큰 원본 응답 데이터', response.data);
 
+      // 예상치 못한 HTML 응답 처리
       if (typeof response.data === 'string') {
         const authorizeUrl = this.getAuthUrl(redirectUri);
         console.error('[KakaoAuthService] HTML 응답 수신, 토큰이 아닌 로그인 페이지 반환', {
@@ -152,6 +155,7 @@ export class KakaoAuthService {
         );
       }
 
+      // 토큰 누락 처리
       if (!response.data?.access_token) {
         const authorizeUrl = this.getAuthUrl(redirectUri);
         console.error('[KakaoAuthService] access_token 없음, 재인증 필요', {
@@ -163,6 +167,7 @@ export class KakaoAuthService {
           authorizeUrl
         );
       }
+
       console.log('[KakaoAuthService] 토큰 요청 성공', {
         expiresIn: response.data.expires_in,
         tokenType: response.data.token_type,
@@ -173,6 +178,7 @@ export class KakaoAuthService {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        // 카카오 응답 기반 오류 분기
         const errorData = error.response?.data as { [key: string]: any } | undefined;
         const errorCode = errorData?.error_code || errorData?.error;
         const errorDescription = errorData?.error_description || '';
@@ -189,7 +195,9 @@ export class KakaoAuthService {
         });
 
         if (error.response?.status === 429 || errorData?.error === 'TOO_MANY_ATTEMPTS') {
-          throw new Error('카카오가 로그인 시도가 너무 많다고 응답했습니다. 잠시 후 다시 시도해주세요.');
+          throw new Error(
+            '카카오가 로그인 시도가 너무 많다고 응답했습니다. 잠시 후 다시 시도해주세요.'
+          );
         }
 
         const redirectMismatch = /redirect uri mismatch/i.test(errorDescription || '');
@@ -223,13 +231,11 @@ export class KakaoAuthService {
           );
         }
 
-        throw new Error(
-          `Failed to get access token: ${errorDescription || error.message}`
-        );
+        throw new Error('카카오 액세스 토큰을 발급받지 못했습니다. 잠시 후 다시 시도해주세요.');
       }
 
       console.error('[KakaoAuthService] 토큰 요청 중 알 수 없는 오류', error);
-      throw error;
+      throw new Error('카카오 액세스 토큰 발급 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   }
 
@@ -243,6 +249,7 @@ export class KakaoAuthService {
         userInfoUrl: this.userInfoUrl,
       });
 
+      // 사용자 정보 요청
       const response = await axios.get<KakaoUserInfo>(this.userInfoUrl, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -256,6 +263,7 @@ export class KakaoAuthService {
         hasProfile: !!response.data.kakao_account?.profile,
       });
 
+      // 필수 프로필 정보 확인
       if (!response.data.kakao_account || !response.data.kakao_account.profile) {
         const authorizeUrl = this.getAuthUrl(undefined, { forceReconsent: true });
         console.warn('[KakaoAuthService] 필수 동의 정보 누락, 재동의 필요', {
@@ -287,13 +295,11 @@ export class KakaoAuthService {
           throw new KakaoReauthError('액세스 토큰이 유효하지 않습니다. 다시 로그인해주세요.', authorizeUrl);
         }
 
-        throw new Error(
-          `Failed to get user info: ${error.response?.data?.msg || error.message}`
-        );
+        throw new Error('카카오 사용자 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
       }
 
       console.error('[KakaoAuthService] 사용자 정보 조회 중 알 수 없는 오류', error);
-      throw error;
+      throw new Error('카카오 사용자 정보 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   }
 
@@ -306,6 +312,7 @@ export class KakaoAuthService {
         accessTokenPreview: accessToken?.slice(0, 10),
       });
 
+      // 카카오 로그아웃 요청
       await axios.post(
         'https://kapi.kakao.com/v1/user/logout',
         {},
