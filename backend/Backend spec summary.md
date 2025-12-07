@@ -287,7 +287,7 @@ const startServer = async () => {
     await initializeDatabase();
     
     app.listen(PORT, () => {
-      logger.info(`🚀 Server is running on http://localhost:${PORT}`);
+      logger.info(`🚀 Server is running on http://127.0.0.1:${PORT}`);
       logger.info(`📊 Environment: ${process.env.NODE_ENV}`);
       logger.info(`🗄️  Database: ${process.env.DB_NAME}`);
     });
@@ -308,7 +308,7 @@ export default app;
 ✅ Database connected successfully
 🔄 Checking and creating tables...
 ✅ All tables created or already exist
-🚀 Server is running on http://localhost:3000
+🚀 Server is running on http://127.0.0.1:3000
 📊 Environment: development
 🗄️  Database: oa_asset_manager
 ```
@@ -775,12 +775,12 @@ router.use('/auth', authApiLimiter);
 
 ### 리다이렉트 URI 설정
 
-#### 개발 환경 (localhost)
+#### 개발 환경 (127.0.0.1)
 ```env
-KAKAO_REDIRECT_URI=http://localhost:3000/api/v1/auth/kakao/callback
-NAVER_REDIRECT_URI=http://localhost:3000/api/v1/auth/naver/callback
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/v1/auth/google/callback
-TEAMS_REDIRECT_URI=http://localhost:3000/api/v1/auth/teams/callback
+KAKAO_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/kakao/callback
+NAVER_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/naver/callback
+GOOGLE_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/google/callback
+TEAMS_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/teams/callback
 ```
 
 #### 프로덕션 환경
@@ -850,13 +850,13 @@ export const kakaoCallback = async (req: Request, res: Response) => {
 
 ```
 # 카카오
-https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri=http://localhost:3000/api/v1/auth/kakao/callback&response_type=code
+https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri=http://127.0.0.1:3000/api/v1/auth/kakao/callback&response_type=code
 
 # 네이버
-https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri=http://localhost:3000/api/v1/auth/naver/callback&state=RANDOM
+https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri=http://127.0.0.1:3000/api/v1/auth/naver/callback&state=RANDOM
 
 # 구글
-https://accounts.google.com/o/oauth2/v2/auth?client_id={CLIENT_ID}&redirect_uri=http://localhost:3000/api/v1/auth/google/callback&response_type=code&scope=openid%20profile%20email
+https://accounts.google.com/o/oauth2/v2/auth?client_id={CLIENT_ID}&redirect_uri=http://127.0.0.1:3000/api/v1/auth/google/callback&response_type=code&scope=openid%20profile%20email
 ```
 
 ## 인증 (Authentication)
@@ -1367,8 +1367,8 @@ backend/
 # 애플리케이션 기본 설정
 NODE_ENV=development
 PORT=3000
-API_BASE_URL=http://localhost:3000
-FRONTEND_URL=http://localhost:3000
+API_BASE_URL=http://127.0.0.1:3000
+FRONTEND_URL=http://127.0.0.1:3000
 
 # 세션/JWT
 SESSION_SECRET=your-secret-key
@@ -1378,7 +1378,7 @@ JWT_EXPIRES_IN=1h
 # 카카오 로그인 설정
 KAKAO_CLIENT_ID=REST_API_키
 KAKAO_CLIENT_SECRET=클라이언트_시크릿_옵션
-KAKAO_REDIRECT_URI=http://localhost:3000/api/v1/auth/kakao/callback
+KAKAO_REDIRECT_URI=http://127.0.0.1:3000/api/v1/auth/kakao/callback
 
 # 데이터베이스 설정
 DB_HOST=127.0.0.1
@@ -1573,7 +1573,7 @@ nano .env
 
 필수 설정:
 ```env
-DB_HOST=localhost
+DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_password
@@ -1592,7 +1592,7 @@ npm run dev
 ✅ Database connected successfully
 🔄 Checking and creating tables...
 ✅ All tables created or already exist
-🚀 Server is running on http://localhost:3000
+🚀 Server is running on http://127.0.0.1:3000
 📊 Environment: development
 🗄️  Database: oa_asset_manager
 ```
@@ -1600,7 +1600,7 @@ npm run dev
 ### 5️⃣ API 테스트
 ```bash
 # Health Check
-curl http://localhost:3000/api/v1/health
+curl http://127.0.0.1:3000/api/v1/health
 
 # 예상 응답
 {
