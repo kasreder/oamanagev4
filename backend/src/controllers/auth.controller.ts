@@ -16,7 +16,12 @@ export class AuthController {
       return configuredRedirectUri;
     }
 
-    const apiBaseUrl = (process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const forwardedProto = req.get('x-forwarded-proto');
+    const forwardedHost = req.get('x-forwarded-host');
+    const protocol = forwardedProto?.split(',')[0].trim() || req.protocol;
+    const host = forwardedHost || req.get('host');
+
+    const apiBaseUrl = (process.env.API_BASE_URL || `${protocol}://${host}`).replace(/\/$/, '');
     return `${apiBaseUrl}/api/v1/auth/kakao/callback`;
   }
 
