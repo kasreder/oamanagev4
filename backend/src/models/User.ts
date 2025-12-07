@@ -2,10 +2,12 @@ import db from '../config/database';
 
 export interface User {
   id?: number;
+  login_method: string;
   kakao_id: string;
   nickname: string;
   email?: string;
   profile_image?: string;
+  score: number;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -34,14 +36,16 @@ export class UserModel {
    */
   static async create(user: User): Promise<User> {
     const sql = `
-      INSERT INTO users (kakao_id, nickname, email, profile_image)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO users (login_method, kakao_id, nickname, email, profile_image, score)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     const result = await db.query(sql, [
+      user.login_method,
       user.kakao_id,
       user.nickname,
       user.email || null,
       user.profile_image || null,
+      user.score,
     ]);
 
     return {
@@ -57,6 +61,10 @@ export class UserModel {
     const fields: string[] = [];
     const values: any[] = [];
 
+    if (user.login_method) {
+      fields.push('login_method = ?');
+      values.push(user.login_method);
+    }
     if (user.nickname) {
       fields.push('nickname = ?');
       values.push(user.nickname);
@@ -68,6 +76,10 @@ export class UserModel {
     if (user.profile_image !== undefined) {
       fields.push('profile_image = ?');
       values.push(user.profile_image);
+    }
+    if (user.score !== undefined) {
+      fields.push('score = ?');
+      values.push(user.score);
     }
 
     if (fields.length === 0) return false;

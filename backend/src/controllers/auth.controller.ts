@@ -114,6 +114,7 @@ export class AuthController {
 
       // 3. DB에서 사용자 찾거나 생성
       const userData = {
+        login_method: 'kakao',
         kakao_id: String(userInfo.id),
         nickname:
           userInfo.properties?.nickname ||
@@ -123,6 +124,7 @@ export class AuthController {
         profile_image:
           userInfo.properties?.profile_image ||
           userInfo.kakao_account?.profile?.profile_image_url,
+        score: 0,
       };
 
       console.log('[AuthController] 사용자 DB 저장 시도', {
@@ -143,10 +145,12 @@ export class AuthController {
       // 4. 세션에 사용자 정보 저장
       req.session.user = {
         id: user.id!,
+        loginMethod: user.login_method,
         kakaoId: user.kakao_id,
         nickname: user.nickname,
         email: user.email,
         profileImage: user.profile_image,
+        score: user.score,
         role: 'user',
       };
 
