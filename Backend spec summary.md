@@ -121,8 +121,10 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         email VARCHAR(128) UNIQUE COMMENT '이메일',
         phone VARCHAR(32) COMMENT '전화번호',
         role VARCHAR(20) DEFAULT 'user' COMMENT 'user, admin',
+        score INT DEFAULT 0 COMMENT '점수',
         provider VARCHAR(20) COMMENT 'kakao, naver, google, teams',
         provider_id VARCHAR(128) COMMENT '플랫폼별 고유 ID',
+        sns_login ENUM('kakao', 'other') COMMENT 'SNS 로그인 구분',
         department_hq VARCHAR(64) COMMENT '본부',
         department_dept VARCHAR(64) COMMENT '부서',
         department_team VARCHAR(64) COMMENT '팀',
@@ -134,6 +136,7 @@ export const createTablesIfNotExists = async (): Promise<void> => {
         INDEX idx_provider (provider, provider_id),
         INDEX idx_department (department_team),
         INDEX idx_active (is_active),
+        INDEX idx_sns_login (sns_login),
         INDEX idx_role (role)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
@@ -321,10 +324,13 @@ CREATE TABLE user (
   name VARCHAR(64) NOT NULL COMMENT '사용자 이름',
   email VARCHAR(128) UNIQUE COMMENT '이메일',
   phone VARCHAR(32) COMMENT '전화번호',
+  score INT DEFAULT 0 COMMENT '점수',
+
   
   -- 소셜 로그인
   provider VARCHAR(20) COMMENT 'kakao, naver, google, teams',
   provider_id VARCHAR(128) COMMENT '플랫폼별 고유 ID',
+  sns_login ENUM('kakao', 'other') COMMENT 'SNS 로그인 구분',
   
   -- 조직 정보
   department_hq VARCHAR(64) COMMENT '본부',
@@ -340,7 +346,8 @@ CREATE TABLE user (
   
   INDEX idx_provider (provider, provider_id),
   INDEX idx_department (department_team),
-  INDEX idx_active (is_active)
+  INDEX idx_active (is_active),
+  INDEX idx_sns_login (sns_login)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
