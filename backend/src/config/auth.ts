@@ -1,3 +1,5 @@
+import type { SessionOptions } from 'express-session';
+
 import './env';
 
 export const authConfig = {
