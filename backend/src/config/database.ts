@@ -119,6 +119,8 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
+    await this.ensureUserIdUnsigned(connection);
+
     await connection.query(`
       CREATE TABLE IF NOT EXISTS assets (
         uid VARCHAR(64) PRIMARY KEY COMMENT '자산 관리 코드',
@@ -216,6 +218,19 @@ class Database {
     `);
 
     console.log('✅ All tables created or already exist');
+  }
+
+  private async ensureUserIdUnsigned(connection: mysql.Connection): Promise<void> {
+    const [rows] = await connection.query<mysql.RowDataPacket[]>(
+      `SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'id';`,
+      [this.dbConfig.database]
+    );
+
+    const columnType = rows?.[0]?.COLUMN_TYPE?.toLowerCase();
+    if (columnType && !columnType.includes('unsigned')) {
+      await connection.query(`ALTER TABLE users MODIFY COLUMN id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;`);
+      console.log('ℹ️ Updated users.id to BIGINT UNSIGNED for FK compatibility');
+    }
   }
 
   private async ensureInitialized(): Promise<void> {
