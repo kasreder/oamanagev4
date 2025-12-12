@@ -86,7 +86,7 @@ class Database {
   private async createTablesIfNotExists(connection: mysql.Connection): Promise<void> {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         login_method VARCHAR(50) NOT NULL DEFAULT 'kakao',
         kakao_id VARCHAR(100) NOT NULL UNIQUE,
         nickname VARCHAR(100) NOT NULL,
@@ -133,7 +133,7 @@ class Database {
         floor VARCHAR(32),
         location_row INT,
         location_col INT,
-        owner_user_id BIGINT,
+        owner_user_id BIGINT UNSIGNED,
         metadata JSON COMMENT '추가 필드',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -153,7 +153,7 @@ class Database {
         scanned_at TIMESTAMP NOT NULL,
         synced BOOLEAN DEFAULT FALSE,
         user_team VARCHAR(128),
-        user_id BIGINT,
+        user_id BIGINT UNSIGNED,
         asset_type VARCHAR(64),
         verified BOOLEAN DEFAULT FALSE,
         barcode_photo_url VARCHAR(256),
@@ -171,7 +171,7 @@ class Database {
       CREATE TABLE IF NOT EXISTS signatures (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         asset_uid VARCHAR(64) NOT NULL,
-        user_id BIGINT NOT NULL,
+        user_id BIGINT UNSIGNED NOT NULL,
         user_name VARCHAR(64),
         storage_location VARCHAR(256) NOT NULL,
         file_size INT,
@@ -187,7 +187,7 @@ class Database {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS refresh_tokens (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
-        user_id BIGINT NOT NULL,
+        user_id BIGINT UNSIGNED NOT NULL,
         token VARCHAR(512) UNIQUE NOT NULL,
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -200,7 +200,7 @@ class Database {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
-        user_id BIGINT,
+        user_id BIGINT UNSIGNED,
         action VARCHAR(50) NOT NULL,
         resource_type VARCHAR(50) NOT NULL,
         resource_id VARCHAR(128),
