@@ -1,9 +1,14 @@
 import app from './app';
+import db from './config/database';
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`
+const startServer = async () => {
+  try {
+    await db.testConnection();
+
+    app.listen(PORT, () => {
+      console.log(`
 ╔══════════════════════════════════════════════╗
 ║                                              ║
 ║   🚀 Server is running on port ${PORT}           ║
@@ -18,5 +23,12 @@ app.listen(PORT, () => {
 ║   - GET  /api/v1/users/me                    ║
 ║                                              ║
 ╚══════════════════════════════════════════════╝
-  `);
-});
+      `);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
