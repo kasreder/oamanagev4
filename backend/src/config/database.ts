@@ -86,7 +86,7 @@ class Database {
   private async createTablesIfNotExists(connection: mysql.Connection): Promise<void> {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
         login_method VARCHAR(50) NOT NULL DEFAULT 'kakao',
         kakao_id VARCHAR(100) NOT NULL UNIQUE,
         nickname VARCHAR(100) NOT NULL,
