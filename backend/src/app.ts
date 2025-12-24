@@ -48,7 +48,6 @@ app.get('/', (_req: Request, res: Response) => {
       logout: `${apiBase}/auth/logout`,
       assets: `${apiBase}/assets`,
       assetDetail: `${apiBase}/assets/:uid`,
-      assetReference: `${apiBase}/references/assets`,
       currentUserByToken: `${apiBase}/users/me`,
     },
   });
