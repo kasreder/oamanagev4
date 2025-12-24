@@ -1,5 +1,4 @@
 import { AuthenticatedUser } from '../types/express';
-import { AssetRepository } from '../repositories/asset.repository';
 
 export interface AssetOwner {
   id: number;
@@ -27,8 +26,40 @@ export interface Asset {
   updatedAt?: string;
 }
 
+class AssetStore {
+  private assets: Asset[] = [];
+
+  list(): Asset[] {
+    return [...this.assets];
+  }
+
+  findByUid(uid: string): Asset | undefined {
+    return this.assets.find((item) => item.uid === uid);
+  }
+
+  upsert(asset: Asset): Asset {
+    const index = this.assets.findIndex((item) => item.uid === asset.uid);
+    const timestamp = new Date().toISOString();
+    const record = { ...asset, updatedAt: timestamp, createdAt: asset.createdAt || timestamp };
+
+    if (index === -1) {
+      this.assets.push(record);
+    } else {
+      this.assets[index] = record;
+    }
+
+    return record;
+  }
+
+  delete(uid: string): boolean {
+    const originalLength = this.assets.length;
+    this.assets = this.assets.filter((item) => item.uid !== uid);
+    return this.assets.length < originalLength;
+  }
+}
+
 export class AssetService {
-  constructor(private readonly repository = new AssetRepository()) {}
+  constructor(private readonly repository = new AssetStore()) {}
 
   list(user?: AuthenticatedUser): Asset[] {
     return this.filterForUser(this.repository.list(), user);

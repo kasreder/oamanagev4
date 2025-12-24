@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { authConfig } from '../config/auth';
 import { signToken, verifyToken } from '../utils/jwt';
 import { AuthenticatedUser } from '../types/express';
-import { UserRecord, UserRepository } from '../repositories/user.repository';
+import { UserRecord, UserStore } from './user.store';
 
 export interface TokenPair {
   accessToken: string;
@@ -11,7 +11,7 @@ export interface TokenPair {
 }
 
 export class AuthService {
-  constructor(private readonly users = new UserRepository()) {}
+  constructor(private readonly users = new UserStore()) {}
 
   socialLogin(
     provider: NonNullable<AuthenticatedUser['provider']>,
