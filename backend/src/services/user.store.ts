@@ -4,27 +4,8 @@ export interface UserRecord extends AuthenticatedUser {
   refreshToken?: string;
 }
 
-const seedUsers: UserRecord[] = [
-  {
-    id: 1,
-    provider: 'kakao',
-    nickname: '홍길동',
-    email: 'hong@example.com',
-    role: 'user',
-    score: 10,
-  },
-  {
-    id: 2,
-    provider: 'google',
-    nickname: '관리자',
-    email: 'admin@example.com',
-    role: 'admin',
-    score: 100,
-  },
-];
-
-export class UserRepository {
-  private users: UserRecord[] = [...seedUsers];
+export class UserStore {
+  private users: UserRecord[] = [];
 
   findById(id: number): UserRecord | undefined {
     return this.users.find((user) => user.id === id);

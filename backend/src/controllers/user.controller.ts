@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { UserRepository } from '../repositories/user.repository';
+import { UserStore } from '../services/user.store';
 
-const users = new UserRepository();
+const users = new UserStore();
 
 export class UserController {
   me = (req: Request, res: Response) => {
