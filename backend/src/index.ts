@@ -19,7 +19,6 @@ const startServer = async () => {
 ║   - POST /api/v1/auth/refresh                ║
 ║   - GET  /api/v1/assets                      ║
 ║   - GET  /api/v1/assets/:uid                 ║
-║   - GET  /api/v1/references/assets           ║
 ║   - GET  /api/v1/users/me                    ║
 ║                                              ║
 ╚══════════════════════════════════════════════╝
