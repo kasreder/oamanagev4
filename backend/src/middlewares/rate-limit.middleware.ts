@@ -47,7 +47,7 @@ export const publicApiLimiter = createMemoryLimiter({
 
 export const authApiLimiter = createMemoryLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 500,
   message: {
     error: 'TOO_MANY_ATTEMPTS',
     message: '로그인 시도가 너무 많습니다.',
